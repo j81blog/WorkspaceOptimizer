@@ -8,6 +8,13 @@
           <div class="about-info">
             <div class="about-title">Workspace Optimizer</div>
             <div class="about-meta">Last updated: {{ lastUpdated }}</div>
+            <div class="about-versions">
+              <div class="about-versions-label">Versions:</div>
+              <div class="about-versions-grid">
+                <span>Script</span><span>: {{ scriptVersion }}</span>
+                <span>XML</span><span>: {{ xmlVersion }}</span>
+              </div>
+            </div>
             <div class="about-author">Created by <strong>John Billekens Consultancy & AppVentiX</strong></div>
             <a class="about-link" href="https://appventix.com" target="_blank" rel="noopener noreferrer">appventix.com ↗</a>
             <a class="about-link" href="https://blog.j81.nl" target="_blank" rel="noopener noreferrer">blog.j81.nl ↗</a>
@@ -30,7 +37,9 @@ import logoUrl from '../assets/WorkspaceOptimizer.png'
 defineProps<{ visible: boolean }>()
 const emit = defineEmits<{ 'update:visible': [boolean] }>()
 
-const lastUpdated = 'April 4, 2026'
+const lastUpdated = __BUILD_DATE__
+const scriptVersion = __SCRIPT_VERSION__
+const xmlVersion = __XML_VERSION__
 const description = 'A tool for building and editing Windows cleanup & optimization templates.'
 
 function close() {
@@ -65,6 +74,9 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 .about-info { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .about-title { font-size: 16px; font-weight: 700; color: var(--bc-name); }
 .about-meta { font-size: 11px; color: var(--field-label); }
+.about-versions { font-size: 11px; color: var(--field-label); }
+.about-versions-label { font-weight: 600; margin-bottom: 2px; }
+.about-versions-grid { display: grid; grid-template-columns: max-content 1fr; column-gap: 8px; row-gap: 1px; padding-left: 8px; }
 .about-author { font-size: 12px; color: var(--field-txt); }
 .about-link { font-size: 11px; color: var(--item-bar); text-decoration: none; }
 .about-link:hover { text-decoration: underline; }

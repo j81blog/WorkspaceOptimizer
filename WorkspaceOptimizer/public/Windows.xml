@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Items>
+  <Metadata>
+    <Version>2026.429.2230</Version>
+    <SchemaVersion>1</SchemaVersion>
+  </Metadata>
   <SupportedOS>
     <OS>
       <Tag>Windows11</Tag>
