@@ -94,7 +94,18 @@ const categories = computed(() => [...new Set(all.value.map(i => i.category).fil
 const filtered = computed(() => {
   let items = all.value
   const { search, category, type, os } = uiStore.filters
-  if (search) { const q = search.toLowerCase(); items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q) || i.description.toLowerCase().includes(q)) }
+  if (search) {
+    const q = search.toLowerCase()
+    items = items.filter(i => {
+      if (i.name.toLowerCase().includes(q)) return true
+      if (i.category.toLowerCase().includes(q)) return true
+      if (i.description.toLowerCase().includes(q)) return true
+      const p = i.payload as Record<string, unknown>
+      if (typeof p.name === 'string' && p.name.toLowerCase().includes(q)) return true
+      if (typeof p.path === 'string' && p.path.toLowerCase().includes(q)) return true
+      return false
+    })
+  }
   if (category) items = items.filter(i => i.category === category)
   if (type) items = items.filter(i => i.type === type)
   if (os) items = items.filter(i => os in i.os)
