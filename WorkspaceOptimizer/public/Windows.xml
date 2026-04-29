@@ -169,6 +169,74 @@
     </FileFolder>
   </Item>
   <Item>
+    <Name>3D Model Viewer</Name>
+    <Description>Legacy 3D support</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.Microsoft3DViewer</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Alarms &amp; Clock</Name>
+    <Description>Useful for timers/world clock on physical devices.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.WindowsAlarms</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Calculator</Name>
+    <Description>Built-in Windows Calculator. If your users are using it (mostly desktop sessions rather than published applications), do not remove it unless you have a replacement calculator app.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>0</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.WindowsCalculator</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Camera App</Name>
+    <Description>Required for laptops with webcams.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.WindowsCamera</Name>
+    </StoreApp>
+  </Item>
+  <Item>
     <Name>Clipchamp - Video Editor</Name>
     <Description>Clipchamp - Video Editor</Description>
     <Type>StoreApp</Type>
@@ -186,263 +254,8 @@
     </StoreApp>
   </Item>
   <Item>
-    <Name>Cortana</Name>
-    <Description>Remove the Cortana UWP App</Description>
-    <Type>StoreApp</Type>
-    <Category>Miscellaneous</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>0</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.549981C3F5F10</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft News</Name>
-    <Description>Microsoft News</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.BingNews</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft Todo</Name>
-    <Description>Microsoft Todo</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.Todos</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.BingWeather</Name>
-    <Description>Microsoft.BingWeather</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.BingWeather</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.GamingApp</Name>
-    <Description>Microsoft.GamingApp</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.GamingApp</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.GetHelp</Name>
-    <Description>Microsoft.GetHelp</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.GetHelp</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.Getstarted</Name>
-    <Description>Microsoft.Getstarted</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.Getstarted</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.HEIFImageExtension</Name>
-    <Description>Adds support for High Efficiency Image File (HEIF) format, usually with .heif extension.</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.HEIFImageExtension</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.Microsoft3DViewer</Name>
-    <Description>Microsoft.Microsoft3DViewer</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.Microsoft3DViewer</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.MicrosoftOfficeHub</Name>
-    <Description>Microsoft.MicrosoftOfficeHub</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.MicrosoftOfficeHub</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.MicrosoftSolitaireCollection</Name>
-    <Description>Microsoft.MicrosoftSolitaireCollection</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.MicrosoftSolitaireCollection</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.MicrosoftStickyNotes</Name>
-    <Description>Microsoft.MicrosoftStickyNotes</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.MicrosoftStickyNotes</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.MixedReality.Portal</Name>
-    <Description>Provides access to mixed reality games and VR experiences.</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.MixedReality.Portal</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.MSPaint</Name>
-    <Description>Microsoft.MSPaint</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.MSPaint</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.Office.OneNote</Name>
-    <Description>Microsoft.Office.OneNote</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.Office.OneNote</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.People</Name>
-    <Description>Microsoft.People</Description>
+    <Name>Contacts App</Name>
+    <Description>Legacy contact manager; redundant if using Outlook.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -458,8 +271,25 @@
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.ScreenSketch</Name>
-    <Description>Removes &quot;Snip &amp; Sketch&quot; application. Provides functionality of Snipping Tool with additional improvements.</Description>
+    <Name>Cortana</Name>
+    <Description>Remove the Cortana UWP App. Deprecated. Replaced by Copilot.</Description>
+    <Type>StoreApp</Type>
+    <Category>Miscellaneous</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.549981C3F5F10</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Desktop Notes</Name>
+    <Description>Desktop Notes, database syncs with Outlook.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -471,201 +301,12 @@
       </Windows11>
     </OS>
     <StoreApp>
-      <Name>Microsoft.ScreenSketch</Name>
+      <Name>Microsoft.MicrosoftStickyNotes</Name>
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.SkypeApp</Name>
-    <Description>Microsoft.SkypeApp</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.SkypeApp</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.StorePurchaseApp</Name>
-    <Description>Microsoft Store application. Do not remove it if you're planning to use UWP applications. After removed, it is not possible to fix it without reverting to previous backup / snapshot or resetting operating system.</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>0</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.StorePurchaseApp</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.VP9VideoExtensions</Name>
-    <Description>Adds support for video codec VP9 (part of WebM project by Google)
-
-Note: This is required to support HDR video streaming</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>0</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.VP9VideoExtensions</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.Wallet</Name>
-    <Description>Microsoft.Wallet</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.Wallet</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.WebMediaExtensions</Name>
-    <Description>Microsoft.WebMediaExtensions</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.WebMediaExtensions</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.WebpImageExtension</Name>
-    <Description>Adds support for image format WebP.</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>0</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.WebpImageExtension</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.Windows.Photos</Name>
-    <Description>The Microsoft Photo's app</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>0</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.Windows.Photos</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.WindowsAlarms</Name>
-    <Description>Microsoft.WindowsAlarms</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.WindowsAlarms</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.WindowsCalculator</Name>
-    <Description>Built-in Windows Calculator. If your users are using it (mostly desktop sessions rather than published applications), do not remove it unless you have a replacement calculator app.</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>0</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.WindowsCalculator</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.WindowsCamera</Name>
-    <Description>Microsoft.WindowsCamera</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.WindowsCamera</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.WindowsCommunicationsApps</Name>
-    <Description>Disable Windows Mail and Calendar functionality</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>microsoft.windowscommunicationsapps</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.WindowsFeedbackHub</Name>
-    <Description>Microsoft.WindowsFeedbackHub</Description>
+    <Name>Feedback Hub</Name>
+    <Description>Used to report bugs to Microsoft.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -691,8 +332,42 @@ Note: This is required to support HDR video streaming</Description>
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.WindowsMaps</Name>
-    <Description>Microsoft.WindowsMaps</Description>
+    <Name>High Efficiency Image</Name>
+    <Description>Adds support for High Efficiency Image File (HEIF) format, usually with .heif extension. Required to view iPhone/modern photos.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>0</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.HEIFImageExtension</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Mail &amp; Calendar</Name>
+    <Description>Disable Windows Mail and Calendar functionality. The &quot;built-in&quot; Mail client. Redundant to Outlook.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>microsoft.windowscommunicationsapps</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Maps</Name>
+    <Description>Rarely used on desktop/server.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -708,8 +383,8 @@ Note: This is required to support HDR video streaming</Description>
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.WindowsSoundRecorder</Name>
-    <Description>Microsoft.WindowsSoundRecorder</Description>
+    <Name>Media Player / TV (Music)</Name>
+    <Description>Modern Media Player.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -721,11 +396,45 @@ Note: This is required to support HDR video streaming</Description>
       </Windows11>
     </OS>
     <StoreApp>
-      <Name>Microsoft.WindowsSoundRecorder</Name>
+      <Name>Microsoft.ZuneMusic</Name>
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.WindowsStore</Name>
+    <Name>Media Player / TV (Video)</Name>
+    <Description>Modern Media Player</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.ZuneVideo</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Microsoft News</Name>
+    <Description>Pure bloatware. Generates background network traffic.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.BingNews</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Microsoft Store</Name>
     <Description>Microsoft Store application. Do not remove it if you're planning to use UWP applications. After removed, it is not possible to fix it without reverting to previous backup / snapshot or resetting operating system.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
@@ -742,8 +451,8 @@ Note: This is required to support HDR video streaming</Description>
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.Xbox.TCUI</Name>
-    <Description>Microsoft.Xbox.TCUI</Description>
+    <Name>Microsoft Todo</Name>
+    <Description>Useful for task management</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -755,12 +464,12 @@ Note: This is required to support HDR video streaming</Description>
       </Windows11>
     </OS>
     <StoreApp>
-      <Name>Microsoft.Xbox.TCUI</Name>
+      <Name>Microsoft.Todos</Name>
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.XboxApp</Name>
-    <Description>Microsoft.XboxApp</Description>
+    <Name>Microsoft Wallet</Name>
+    <Description>Used for payments/passes</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -772,12 +481,12 @@ Note: This is required to support HDR video streaming</Description>
       </Windows11>
     </OS>
     <StoreApp>
-      <Name>Microsoft.XboxApp</Name>
+      <Name>Microsoft.Wallet</Name>
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.XboxGameOverlay</Name>
-    <Description>Microsoft.XboxGameOverlay</Description>
+    <Name>Office (Home) app</Name>
+    <Description>A portal for Office.com. Not the actual Office suite.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -789,29 +498,29 @@ Note: This is required to support HDR video streaming</Description>
       </Windows11>
     </OS>
     <StoreApp>
-      <Name>Microsoft.XboxGameOverlay</Name>
+      <Name>Microsoft.MicrosoftOfficeHub</Name>
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.XboxGamingOverlay</Name>
-    <Description>Microsoft.XboxGamingOverlay</Description>
+    <Name>OGG/Vorbis Codecs</Name>
+    <Description>Adds support for open web media formats.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
     <OS>
       <Windows11>
-        <Execute>1</Execute>
+        <Execute>0</Execute>
         <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
     <StoreApp>
-      <Name>Microsoft.XboxGamingOverlay</Name>
+      <Name>Microsoft.WebMediaExtensions</Name>
     </StoreApp>
   </Item>
   <Item>
-    <Name>Microsoft.XboxIdentityProvider</Name>
-    <Description>Microsoft.XboxIdentityProvider</Description>
+    <Name>OneNote (UWP)</Name>
+    <Description>Most enterprises use the Win32 Desktop version.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -823,75 +532,7 @@ Note: This is required to support HDR video streaming</Description>
       </Windows11>
     </OS>
     <StoreApp>
-      <Name>Microsoft.XboxIdentityProvider</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.XboxSpeechToTextOverlay</Name>
-    <Description>Microsoft.XboxSpeechToTextOverlay</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.XboxSpeechToTextOverlay</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.YourPhone</Name>
-    <Description>Provides access to remotely send text messages or access images on Android-based phone.</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.YourPhone</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.ZuneMusic</Name>
-    <Description>Microsoft.ZuneMusic</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.ZuneMusic</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.ZuneVideo</Name>
-    <Description>Microsoft.ZuneVideo</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Applications</Category>
-    <Order>60</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>1</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.ZuneVideo</Name>
+      <Name>Microsoft.Office.OneNote</Name>
     </StoreApp>
   </Item>
   <Item>
@@ -912,8 +553,59 @@ Note: This is required to support HDR video streaming</Description>
     </StoreApp>
   </Item>
   <Item>
+    <Name>Paint</Name>
+    <Description>Modernized Paint.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.MSPaint</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Phone Link</Name>
+    <Description>Syncs Android/iPhone. Privacy risk in some offices.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.YourPhone</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Photos App</Name>
+    <Description>The Microsoft Photo's app</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>0</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.Windows.Photos</Name>
+    </StoreApp>
+  </Item>
+  <Item>
     <Name>Quick Assist</Name>
-    <Description>Quick Assist</Description>
+    <Description>Remote helpdesk support.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Applications</Category>
     <Order>60</Order>
@@ -929,8 +621,316 @@ Note: This is required to support HDR video streaming</Description>
     </StoreApp>
   </Item>
   <Item>
+    <Name>Skype for Consumer</Name>
+    <Description>Not Skype for Business/Teams. Safe to remove.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.SkypeApp</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Snipping Tool</Name>
+    <Description>Removes &quot;Snip &amp; Sketch&quot; application. Provides functionality of Snipping Tool with additional improvements.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.ScreenSketch</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Solitaire Games</Name>
+    <Description>Pure bloatware.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.MicrosoftSolitaireCollection</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Sound Recorder</Name>
+    <Description>Useful for quick audio clips on laptops.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.WindowsSoundRecorder</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Store Purchase API</Name>
+    <Description>Microsoft Store application. Do not remove it if you're planning to use UWP applications. After removed, it is not possible to fix it without reverting to previous backup / snapshot or resetting operating system.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>0</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.StorePurchaseApp</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Support App</Name>
+    <Description>Links to MS support articles</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.GetHelp</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Tips / Welcome</Name>
+    <Description>&quot;Tips&quot; app that appears after updates. Bloatware.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.Getstarted</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>VP9 Video Codec</Name>
+    <Description>Adds support for video codec VP9 (part of WebM project by Google)
+
+Note: This is required to support HDR video streaming and required for 4K YouTube and web video.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>0</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.VP9VideoExtensions</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>VR/AR Portal</Name>
+    <Description>Provides access to mixed reality games and VR experiences. Required only if using VR headsets.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.MixedReality.Portal</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Weather App</Name>
+    <Description>Provides Taskbar weather; consumes background data.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.BingWeather</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>WebP Image Codec</Name>
+    <Description>Adds support for image format WebP. Required for modern web image rendering.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>0</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.WebpImageExtension</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Xbox App</Name>
+    <Description>Microsoft.XboxApp</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.XboxApp</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Xbox CUI</Name>
+    <Description>High resource/network usage for zero business value.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.Xbox.TCUI</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Xbox Game Overlay</Name>
+    <Description>High resource/network usage for zero business value.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.XboxGameOverlay</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Xbox Game UI</Name>
+    <Description>Essential only for gaming. Unnecessary for business.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.GamingApp</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Xbox Gaming Overlay</Name>
+    <Description>High resource/network usage for zero business value.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.XboxGamingOverlay</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Xbox Identity Provider</Name>
+    <Description>High resource/network usage for zero business value.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.XboxIdentityProvider</Name>
+    </StoreApp>
+  </Item>
+  <Item>
+    <Name>Xbox Speech To Text Overlay</Name>
+    <Description>High resource/network usage for zero business value.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Applications</Category>
+    <Order>60</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.XboxSpeechToTextOverlay</Name>
+    </StoreApp>
+  </Item>
+  <Item>
     <Name>AllJoyn Router Service</Name>
-    <Description>Routes AllJoyn messages for the local AllJoyn clients.</Description>
+    <Description>Legacy routing and IoT discovery; rarely needed in modern environments.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -963,7 +963,7 @@ Note: This is required to support HDR video streaming</Description>
   </Item>
   <Item>
     <Name>Application Layer Gateway Service</Name>
-    <Description>Provides support for 3rd party protocol plug-ins for Internet Connection Sharing.</Description>
+    <Description>Provides support for 3rd party protocol plug-ins for Internet Connection Sharing. Legacy NAT/Firewall helper. Rarely needed in modern environments.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -996,14 +996,14 @@ Note: This is required to support HDR video streaming</Description>
   </Item>
   <Item>
     <Name>AVCTP service</Name>
-    <Description>This is Audio Video Control Transport Protocol service</Description>
+    <Description>This is Audio Video Control Transport Protocol service. Required for BT media keys.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
@@ -1032,7 +1032,7 @@ Note: This is required to support HDR video streaming</Description>
   </Item>
   <Item>
     <Name>Block Level Backup Engine Service</Name>
-    <Description>The WBENGINE service is used by Windows Backup to perform backup and recovery operations.</Description>
+    <Description>The WBENGINE service is used by Windows Backup to perform backup and recovery operations. Only needed if Windows Server Backup is needed.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1062,17 +1062,17 @@ Note: This is required to support HDR video streaming</Description>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>0</Physical>
+        <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>0</Physical>
+        <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>0</Physical>
+        <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2022>
     </OS>
@@ -1095,17 +1095,17 @@ Note: This is required to support HDR video streaming</Description>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>0</Physical>
+        <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>0</Physical>
+        <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>0</Physical>
+        <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2022>
     </OS>
@@ -1116,7 +1116,7 @@ Note: This is required to support HDR video streaming</Description>
   </Item>
   <Item>
     <Name>BranchCache</Name>
-    <Description>This service caches network content from peers on the local subnet.</Description>
+    <Description>This service caches network content from peers on the local subnet. WAN optimization. Superseded by modern sync.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1133,8 +1133,8 @@ Note: This is required to support HDR video streaming</Description>
     </Service>
   </Item>
   <Item>
-    <Name>Cellular Time service</Name>
-    <Description>This service sets time based on NITZ messages from a Mobile Network.</Description>
+    <Name>Cellular Time service.</Name>
+    <Description>This service sets time based on NITZ messages from a Mobile Network. Syncs clock via SIM/Mobile. Redundant on LAN.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1165,17 +1165,17 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
-        <Execute>1</Execute>
+        <Execute>0</Execute>
         <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
-        <Execute>1</Execute>
+        <Execute>0</Execute>
         <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
-        <Execute>1</Execute>
+        <Execute>0</Execute>
         <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2022>
@@ -1187,14 +1187,14 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Contact Data</Name>
-    <Description>Indexes contact data for fast contact searching. If you stop or disable this service, contacts might be missing from your search results.</Description>
+    <Description>Indexes contact data for fast contact searching. If you stop or disable this service, contacts might be missing from your search results. Can cause high CPU during login.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
@@ -1205,14 +1205,14 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Data Usage</Name>
-    <Description>Network data usage, data limit, restrict background data, metered networks.</Description>
+    <Description>Network data usage, data limit, restrict background data, metered networks. On Windows 11, if you disable this, the Network icon in the taskbar may show a globe (&quot;No Internet&quot;) even when you are online. This can prevent Microsoft 365 apps from activating or syncing.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
@@ -1223,14 +1223,14 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Diagnostic Execution Service</Name>
-    <Description>Diagnostic Execution Service</Description>
+    <Description>Diagnostic Execution Service. Powers built-in troubleshooting wizards.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
@@ -1241,29 +1241,29 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Diagnostic Policy Service</Name>
-    <Description>The Diagnostic Policy Service enables problem detection, troubleshooting and resolution for Windows components.</Description>
+    <Description>The Diagnostic Policy Service enables problem detection, troubleshooting and resolution for Windows components. Required for troubleshooting infrastructure.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2022>
     </OS>
@@ -1274,29 +1274,29 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Diagnostic Service Host</Name>
-    <Description>The Diagnostic Service Host is used by the Diagnostic Policy Service to host diagnostics that need to run in a Local Service context.</Description>
+    <Description>The Diagnostic Service Host is used by the Diagnostic Policy Service to host diagnostics that need to run in a Local Service context. Part of the WDI framework.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2022>
     </OS>
@@ -1307,29 +1307,29 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Diagnostic System Host</Name>
-    <Description>The Diagnostic System Host is used by the Diagnostic Policy Service to host diagnostics that need to run in a Local System context.</Description>
+    <Description>The Diagnostic System Host is used by the Diagnostic Policy Service to host diagnostics that need to run in a Local System context. Part of the WDI framework.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2022>
     </OS>
@@ -1340,7 +1340,7 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Distributed Link Tracking Client</Name>
-    <Description>Maintains links between NTFS files within a computer or across computers in a network domain.</Description>
+    <Description>Maintains links between NTFS files within a computer or across computers in a network domain. Could sometimes be needed on physical clients.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1358,7 +1358,7 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Downloaded Maps Manager</Name>
-    <Description>Windows service for application access to downloaded maps. This service is started on-demand by application accessing downloaded maps. Disabling this service will prevent apps from accessing maps.</Description>
+    <Description>Windows service for application access to downloaded maps. This service is started on-demand by application accessing downloaded maps. Disabling this service will prevent apps from accessing maps. No value for professional/server usage.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1424,7 +1424,7 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Fax</Name>
-    <Description>Enables you to send and receive faxes, utilizing fax resources available on this computer or on the network.</Description>
+    <Description>Enables you to send and receive faxes, utilizing fax resources available on this computer or on the network. Only needed for physical fax modems/hardware.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1442,29 +1442,29 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Function Discovery Provider Host</Name>
-    <Description>The FDPHOST service hosts the Function Discovery (FD) network discovery providers. These FD providers supply network discovery services for the Simple Services Discovery Protocol (SSDP) and Web Services – Discovery (WS-D) protocol. Stopping or disabling the FDPHOST service will disable network discovery for these protocols when using FD. When this service is unavailable, network services using FD and relying on these discovery protocols will be unable to find network devices or resources.</Description>
+    <Description>The FDPHOST service hosts the Function Discovery (FD) network discovery providers. These FD providers supply network discovery services for the Simple Services Discovery Protocol (SSDP) and Web Services – Discovery (WS-D) protocol. Stopping or disabling the FDPHOST service will disable network discovery for these protocols when using FD. When this service is unavailable, network services using FD and relying on these discovery protocols will be unable to find network devices or resources. Used to find other devices on the network.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2022>
     </OS>
@@ -1475,29 +1475,29 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>Function Discovery Resource Publication</Name>
-    <Description>Publishes this computer and resources attached to this computer so they can be discovered over the network.</Description>
+    <Description>Publishes this computer and resources attached to this computer so they can be discovered over the network. Makes the machine visible to others.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2022>
     </OS>
@@ -1508,7 +1508,7 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   </Item>
   <Item>
     <Name>GameDVR and Broadcast user service</Name>
-    <Description>This user service is used for Game Recordings and Live Broadcasts</Description>
+    <Description>This user service is used for Game Recordings and Live Broadcasts. Background overhead on business devices.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1527,14 +1527,14 @@ NOTE: Stopping this service prevents Microsoft Defender ATP from working properl
   <Item>
     <Name>Geolocation Service</Name>
     <Description>This service monitors the current location of the system and manages geofences (a geographical location with associated events).
-If you turn off this service, applications will be unable to use or receive notifications for geolocation or geofences.</Description>
+If you turn off this service, applications will be unable to use or receive notifications for geolocation or geofences. Used for auto-timezone on laptops/tablets.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
@@ -1545,7 +1545,7 @@ If you turn off this service, applications will be unable to use or receive noti
   </Item>
   <Item>
     <Name>Internet Connection Sharing (ICS)</Name>
-    <Description>Provides network address translation, addressing, name resolution and/or intrusion prevention services for a home or small office network.</Description>
+    <Description>Provides network address translation, addressing, name resolution and/or intrusion prevention services for a home or small office network. Required for &quot;Mobile Hotspot&quot; functionality.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1577,8 +1577,8 @@ If you turn off this service, applications will be unable to use or receive noti
     </Service>
   </Item>
   <Item>
-    <Name>MessagingService</Name>
-    <Description>Service supporting text messaging and related functionality.</Description>
+    <Name>Messaging Service</Name>
+    <Description>SMS/Text messaging integration (requires cellular).</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1596,7 +1596,7 @@ If you turn off this service, applications will be unable to use or receive noti
   </Item>
   <Item>
     <Name>Microsoft Windows SMS Router Service</Name>
-    <Description>Routes messages based on rules to appropriate clients.</Description>
+    <Description>Routes SMS messages from cellular modems.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1728,7 +1728,7 @@ If you turn off this service, applications will be unable to use or receive noti
   </Item>
   <Item>
     <Name>Offline Files</Name>
-    <Description>The Offline Files service performs maintenance activities on the Offline Files cache, responds to user logon and logoff events, implements the internals of the public API, and dispatches interesting events to those interested in Offline Files activities and changes in cache state.</Description>
+    <Description>The Offline Files service performs maintenance activities on the Offline Files cache, responds to user logon and logoff events, implements the internals of the public API, and dispatches interesting events to those interested in Offline Files activities and changes in cache state. Critical if using Folder Redirection on PC.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1761,7 +1761,7 @@ If you turn off this service, applications will be unable to use or receive noti
   </Item>
   <Item>
     <Name>Offline Files Driver</Name>
-    <Description>The Offline Files service performs maintenance activities on the Offline Files cache, responds to user logon and logoff events, implements the internals of the public API, and dispatches interesting events to those interested in Offline Files activities and changes in cache state.</Description>
+    <Description>The Offline Files service performs maintenance activities on the Offline Files cache, responds to user logon and logoff events, implements the internals of the public API, and dispatches interesting events to those interested in Offline Files activities and changes in cache state. Required for CscService to function.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1794,7 +1794,7 @@ If you turn off this service, applications will be unable to use or receive noti
   </Item>
   <Item>
     <Name>OneCore capture service</Name>
-    <Description>Enables optional screen capture functionality for applications that call the Windows.Graphics.Capture API.</Description>
+    <Description>Enables optional screen capture functionality for applications that call the Windows.Graphics.Capture API. Required for native (Win 11) Snipping Tool.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1812,7 +1812,7 @@ If you turn off this service, applications will be unable to use or receive noti
   </Item>
   <Item>
     <Name>OneSync Service</Name>
-    <Description>This (per-user) service synchronizes mail, contacts, calendar and various other user data.</Description>
+    <Description>This (per-user) service facilitates the synchronization of data for Universal Windows Platform (UWP) applications, including the native Mail, Calendar, and People apps. It also manages the synchronization of user-specific Windows settings, such as desktop themes and Microsoft Edge profile data, when signed in with a Microsoft Account.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1831,8 +1831,8 @@ If you turn off this service, applications will be unable to use or receive noti
   <Item>
     <Name>Optimize drives</Name>
     <Description>Helps the computer run more efficiently by optimizing files on storage drives.
-
-NOTE:Disabling this service prevents defragmentation (UI) from working.</Description>
+NOTE: Disabling this service prevents defragmentation (UI) from working.
+Virtual clients: SSDs/VMs are handled by hypervisor/trim.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1865,7 +1865,7 @@ NOTE:Disabling this service prevents defragmentation (UI) from working.</Descrip
   </Item>
   <Item>
     <Name>Parental Controls</Name>
-    <Description>Enforces parental controls for child accounts in Windows. If this service is stopped or disabled, parental controls may not be enforced.</Description>
+    <Description>Enforces parental controls for child accounts in Windows. If this service is stopped or disabled, parental controls may not be enforced. Zero value in corporate/server environments.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1883,7 +1883,7 @@ NOTE:Disabling this service prevents defragmentation (UI) from working.</Descrip
   </Item>
   <Item>
     <Name>Payments and NFC/SE Manager</Name>
-    <Description>Manages payments and Near Field Communication (NFC) based secure elements.</Description>
+    <Description>Manages payments and Near Field Communication (NFC) based secure elements. Rarely used on desktop/server.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1916,7 +1916,7 @@ NOTE:Disabling this service prevents defragmentation (UI) from working.</Descrip
   </Item>
   <Item>
     <Name>Retail Demo Service</Name>
-    <Description>The Retail Demo service controls device activity while the device is in retail demo mode.</Description>
+    <Description>The Retail Demo service controls device activity while the device is in retail demo mode. Used for store demonstration modes only.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1934,7 +1934,7 @@ NOTE:Disabling this service prevents defragmentation (UI) from working.</Descrip
   </Item>
   <Item>
     <Name>Secure Socket Tunneling Protocol Service</Name>
-    <Description>Provides support for the Secure Socket Tunneling Protocol (SSTP) to connect to remote computers using VPN.</Description>
+    <Description>Provides support for the Secure Socket Tunneling Protocol (SSTP) to connect to remote computers using VPN. Required if using the native Microsoft VPN client.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -1954,6 +1954,11 @@ NOTE:Disabling this service prevents defragmentation (UI) from working.</Descrip
         <Physical>1</Physical>
         <Virtual>1</Virtual>
       </Server2022>
+      <Windows11>
+        <Execute>0</Execute>
+        <Physical>0</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
     </OS>
     <Service>
       <Name>SstpSvc</Name>
@@ -1962,14 +1967,14 @@ NOTE:Disabling this service prevents defragmentation (UI) from working.</Descrip
   </Item>
   <Item>
     <Name>Sensor Monitoring Service</Name>
-    <Description>Monitors various sensors in order to expose data and adapt to system and user state.</Description>
+    <Description>Monitors various sensors in order to expose data and adapt to system and user state. Used for auto-brightness/rotation on laptops.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
@@ -1995,7 +2000,7 @@ NOTE:Disabling this service prevents defragmentation (UI) from working.</Descrip
   </Item>
   <Item>
     <Name>Shared PC Account Manager</Name>
-    <Description>Manages profiles and accounts on a SharedPC configured device</Description>
+    <Description>Manages profiles and accounts on a SharedPC configured device.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -2025,7 +2030,7 @@ NOTE:Disabling this service prevents defragmentation (UI) from working.</Descrip
     <Name>Shell Hardware Detection</Name>
     <Description>Provides notifications for AutoPlay hardware events.
 
-NOTE: Disabling this service impacts some UI elements (e.g. Format menu for DVD writers) and can also cause event log entries by AppX packages.</Description>
+NOTE: Disabling this service impacts some UI elements (e.g. Format menu for DVD writers) and can also cause event log entries by AppX packages and can cause a 30+ second hang when opening Windows Explorer or connecting a drive.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -2058,7 +2063,7 @@ NOTE: Disabling this service impacts some UI elements (e.g. Format menu for DVD 
   </Item>
   <Item>
     <Name>SSDP Discovery</Name>
-    <Description>Discovers networked devices and services that use the SSDP discovery protocol, such as UPnP devices. Also announces SSDP devices and services running on the local computer.</Description>
+    <Description>Discovers networked devices and services that use the SSDP discovery protocol, such as UPnP devices. Also announces SSDP devices and services running on the local computer. Used to find network printers / scanners.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -2137,14 +2142,14 @@ NOTE: Disabling this service impacts some UI elements (e.g. Format menu for DVD 
   </Item>
   <Item>
     <Name>Update Orchestrator Service</Name>
-    <Description>Update Orchestrator service, manages Windows Updates. If stopped, your devices will not be able to download and install the latest updates.</Description>
+    <Description>Update Orchestrator service, manages Windows Updates. If stopped, your devices will not be able to download and install the latest updates. Disabling breaks Windows Update.</Description>
     <Type>Service</Type>
     <Category>Miscellaneous</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>0</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
@@ -2155,14 +2160,14 @@ NOTE: Disabling this service impacts some UI elements (e.g. Format menu for DVD 
   </Item>
   <Item>
     <Name>UPnP Device Host</Name>
-    <Description>Allows UPnP devices to be hosted on this computer.</Description>
+    <Description>Allows UPnP devices to be hosted on this computer. Allows discovery of local hardware devices.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
@@ -2188,7 +2193,7 @@ NOTE: Disabling this service impacts some UI elements (e.g. Format menu for DVD 
   </Item>
   <Item>
     <Name>Volumetric Audio Compositor Service</Name>
-    <Description>Hosts spatial analysis for Mixed Reality audio simulation.</Description>
+    <Description>Hosts spatial analysis for Mixed Reality audio simulation. Powers wake-on-voice/Cortana features.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -2206,14 +2211,14 @@ NOTE: Disabling this service impacts some UI elements (e.g. Format menu for DVD 
   </Item>
   <Item>
     <Name>Windows Connect Now - Config Registrar</Name>
-    <Description>WCNCSVC hosts the Windows Connect Now Configuration which is Microsoft's Implementation of Wi-Fi Protected Setup (WPS) protocol. This is used to configure Wireless LAN settings for an Access Point (AP) or a Wi-Fi Device. The service is started programmatically as needed.</Description>
+    <Description>WCNCSVC hosts the Windows Connect Now Configuration which is Microsoft's Implementation of Wi-Fi Protected Setup (WPS) protocol. This is used to configure Wireless LAN settings for an Access Point (AP) or a Wi-Fi Device. The service is started programmatically as needed. Irrelevant without a wireless card.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
@@ -2262,7 +2267,7 @@ NOTE: Disabling this service impacts some UI elements (e.g. Format menu for DVD 
   </Item>
   <Item>
     <Name>Windows Media Player Network Sharing Service</Name>
-    <Description>Shares Windows Media Player libraries to other networked players and media devices using Universal Plug and Play.</Description>
+    <Description>Shares Windows Media Player libraries to other networked players and media devices using Universal Plug and Play. Potential security risk in corporate networks.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -2295,7 +2300,7 @@ NOTE: Disabling this service impacts some UI elements (e.g. Format menu for DVD 
   </Item>
   <Item>
     <Name>Windows Mobile Hotspot Service</Name>
-    <Description>Provides the ability to share a cellular data connection with another device.
+    <Description>Provides the ability to share a cellular data connection with another device. Duplicate of SharedAccess.
 Recommended by Microsoft to disable: https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/rds-vdi-recommendations</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
@@ -2363,14 +2368,14 @@ NOTE: Do not disable if you want to enable search for example in Outlook.</Descr
   </Item>
   <Item>
     <Name>WLAN AutoConfig</Name>
-    <Description>The WLANSVC service provides the logic required to configure, discover, connect to, and disconnect from a wireless local area network (WLAN) as defined by IEEE 802.11 standards. It also contains the logic to turn your computer into a software access point so that other devices or computers can connect to your computer wirelessly using a WLAN adapter that can support this.</Description>
+    <Description>The WLANSVC service provides the logic required to configure, discover, connect to, and disconnect from a wireless local area network (WLAN) as defined by IEEE 802.11 standards. It also contains the logic to turn your computer into a software access point so that other devices or computers can connect to your computer wirelessly using a WLAN adapter that can support this. Required for Wi-Fi.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
@@ -2381,14 +2386,14 @@ NOTE: Do not disable if you want to enable search for example in Outlook.</Descr
   </Item>
   <Item>
     <Name>WWAN AutoConfig</Name>
-    <Description>This service manages mobile broadband (GSM and CDMA) data card/embedded module adapters and connections by auto-configuring the networks. It is strongly recommended that this service be kept running for best user experience of mobile broadband devices.</Description>
+    <Description>This service manages mobile broadband (GSM and CDMA) data card/embedded module adapters and connections by auto-configuring the networks. It is strongly recommended that this service be kept running for best user experience of mobile broadband devices. Required for Cellular/LTE modems.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
     </OS>
@@ -2399,7 +2404,7 @@ NOTE: Do not disable if you want to enable search for example in Outlook.</Descr
   </Item>
   <Item>
     <Name>Xbox Accessory Management Service</Name>
-    <Description>This service manages connected Xbox Accessories.</Description>
+    <Description>This service manages connected Xbox Accessories. No value for business.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -2417,7 +2422,7 @@ NOTE: Do not disable if you want to enable search for example in Outlook.</Descr
   </Item>
   <Item>
     <Name>Xbox Live Auth Manager</Name>
-    <Description>Provides authentication and authorization services for interacting with Xbox Live.</Description>
+    <Description>Provides authentication and authorization services for interacting with Xbox Live. No value for business reduces background network noise.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -2435,7 +2440,7 @@ NOTE: Do not disable if you want to enable search for example in Outlook.</Descr
   </Item>
   <Item>
     <Name>Xbox Live Game Save</Name>
-    <Description>This service syncs save data for Xbox Live save enabled games.</Description>
+    <Description>This service syncs save data for Xbox Live save enabled games. No value for business.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -2453,7 +2458,7 @@ NOTE: Do not disable if you want to enable search for example in Outlook.</Descr
   </Item>
   <Item>
     <Name>Xbox Live Networking Service</Name>
-    <Description>This service supports the Windows.Networking.XboxLive application programming interface.</Description>
+    <Description>This service supports the Windows.Networking.XboxLive application programming interface. No value for business reduces background network noise.</Description>
     <Type>Service</Type>
     <Category>Disable Services</Category>
     <Order>70</Order>
@@ -2468,6 +2473,23 @@ NOTE: Do not disable if you want to enable search for example in Outlook.</Descr
       <Name>XboxNetApiSvc</Name>
       <Action>Disabled</Action>
     </Service>
+  </Item>
+  <Item>
+    <Name>App Installer</Name>
+    <Description>This is winget. Necessary for updates.</Description>
+    <Type>StoreApp</Type>
+    <Category>Remove Built-in Apps</Category>
+    <Order>80</Order>
+    <OS>
+      <Windows11>
+        <Execute>0</Execute>
+        <Physical>0</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <StoreApp>
+      <Name>Microsoft.DesktopAppInstaller</Name>
+    </StoreApp>
   </Item>
   <Item>
     <Name>Cellcore Trace</Name>
@@ -3007,40 +3029,6 @@ https://docs.microsoft.com/en-us/windows-hardware/drivers/nfc/what-s-new-in-nfc-
     </Registry>
   </Item>
   <Item>
-    <Name>Microsoft.DesktopAppInstaller</Name>
-    <Description>Microsoft.DesktopAppInstaller</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Built-in Apps</Category>
-    <Order>80</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>0</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.DesktopAppInstaller</Name>
-    </StoreApp>
-  </Item>
-  <Item>
-    <Name>Microsoft.SecHealthUI</Name>
-    <Description>Microsoft.SecHealthUI</Description>
-    <Type>StoreApp</Type>
-    <Category>Remove Built-in Apps</Category>
-    <Order>80</Order>
-    <OS>
-      <Windows11>
-        <Execute>1</Execute>
-        <Physical>0</Physical>
-        <Virtual>1</Virtual>
-      </Windows11>
-    </OS>
-    <StoreApp>
-      <Name>Microsoft.SecHealthUI</Name>
-    </StoreApp>
-  </Item>
-  <Item>
     <Name>MS Edge - ActiveSetup</Name>
     <Description>Remove the ActiveSetup value</Description>
     <Type>Registry</Type>
@@ -3292,14 +3280,14 @@ You could though leave this alone as it would almost never be started unless a u
     </Registry>
   </Item>
   <Item>
-    <Name>WIndows Security</Name>
-    <Description>WIndows Security App</Description>
+    <Name>Windows Security</Name>
+    <Description>This is the interface for Windows Defender.</Description>
     <Type>StoreApp</Type>
     <Category>Remove Built-in Apps</Category>
     <Order>80</Order>
     <OS>
       <Windows11>
-        <Execute>1</Execute>
+        <Execute>0</Execute>
         <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
@@ -5711,7 +5699,7 @@ Does not support analyze/rollback modes, but it is generally safe to use.</Descr
     <PowerShell>
       <Engine>powershell</Engine>
       <Script><![CDATA[Write-Host "NGEN running"
-. $Env:WinDir\Microsoft.Net\Framework\v4.0.30319\ngen.exe Update;
+. $Env:WinDir\Microsoft.Net\Framework\v4.0.30319\ngen.exe Update
 Write-Host "Done"]]></Script>
     </PowerShell>
   </Item>
@@ -5948,22 +5936,22 @@ if (Test-Path $regBase) {
       <Engine>powershell</Engine>
       <Script><![CDATA[# Clear DNS cache
 Write-Host 'Flushing DNS cache...'
-Start-Process "$env:SystemRoot\System32\ipconfig.exe" -ArgumentList '/flushdns' -Wait -NoNewWindow
+& "$env:SystemRoot\System32\ipconfig.exe" /flushdns
 Write-Host 'DNS cache flushed.'
 
 # Release DHCP lease
 Write-Host 'Releasing DHCP lease...'
-Start-Process "$env:SystemRoot\System32\ipconfig.exe" -ArgumentList '/release' -Wait -NoNewWindow
+& "$env:SystemRoot\System32\ipconfig.exe" /release
 Write-Host 'DHCP lease released.'
 
 # Clear ARP cache
 Write-Host 'Clearing ARP cache...'
-Start-Process "$env:SystemRoot\System32\arp.exe" -ArgumentList '-d' -Wait -NoNewWindow
+& "$env:SystemRoot\System32\arp.exe" -d
 Write-Host 'ARP cache cleared.'
 
 # Clear NetBIOS name cache
 Write-Host 'Clearing NetBIOS name cache...'
-Start-Process "$env:SystemRoot\System32\nbtstat.exe" -ArgumentList '-R' -Wait -NoNewWindow
+& "$env:SystemRoot\System32\nbtstat.exe" -R
 Write-Host 'NetBIOS name cache cleared.']]></Script>
     </PowerShell>
   </Item>
