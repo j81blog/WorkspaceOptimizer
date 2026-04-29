@@ -4,3 +4,4 @@ WorkspaceOptimizer/.env
 WorkspaceOptimizer/*.local
 .claude/
 .superpowers/
+Temp/
