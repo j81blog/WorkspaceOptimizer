@@ -4,9 +4,9 @@
       <div class="about-dialog">
         <button class="about-close" data-tooltip="Close" @click="close">×</button>
         <div class="about-body">
-          <img :src="logoUrl" class="about-logo" alt="Workspace Optimizer logo" />
+          <img :src="brand.logo" class="about-logo" :alt="brand.name + ' logo'" @error="onLogoError" />
           <div class="about-info">
-            <div class="about-title">Workspace Optimizer</div>
+            <div class="about-title">{{ brand.name }}</div>
             <div class="about-meta">Last updated: {{ lastUpdated }}</div>
             <div class="about-versions">
               <div class="about-versions-label">Versions:</div>
@@ -15,11 +15,21 @@
                 <span>XML</span><span>: {{ xmlVersion }}</span>
               </div>
             </div>
-            <div class="about-author">Created by <strong>John Billekens Consultancy & AppVentiX</strong></div>
+
+            <!-- Fork's own vendor + link, layered ABOVE the permanent original credit -->
+            <div v-if="brand.vendor" class="about-author">Distributed by <strong>{{ brand.vendor }}</strong></div>
+            <a v-if="brand.url" class="about-link" :href="brand.url" target="_blank" rel="noopener noreferrer">{{ brandUrlLabel() }} ↗</a>
+
+            <!-- Permanent original author credit — always shown, not configurable -->
+            <div class="about-author">Created by <strong>{{ ORIGINAL_CREDIT }}</strong></div>
             <a class="about-link" href="https://appventix.com" target="_blank" rel="noopener noreferrer">appventix.com ↗</a>
             <a class="about-link" href="https://blog.j81.nl" target="_blank" rel="noopener noreferrer">blog.j81.nl ↗</a>
+
             <div class="about-divider"></div>
-            <div class="about-desc">{{ description }}</div>
+            <div class="about-desc">{{ brand.description }}</div>
+            <div v-if="isRebranded" class="about-powered">
+              Powered by <a class="about-link-inline" href="https://workspaceoptimizer.j81.nl/" target="_blank" rel="noopener noreferrer">Workspace Optimizer</a>
+            </div>
             <div class="about-footer">
               <button class="about-btn" data-tooltip="Close this dialog" @click="close">Close</button>
             </div>
@@ -32,7 +42,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
-import logoUrl from '../assets/WorkspaceOptimizer.png'
+import { brand, onLogoError, brandUrlLabel, ORIGINAL_CREDIT, isRebranded } from '../branding'
 
 defineProps<{ visible: boolean }>()
 const emit = defineEmits<{ 'update:visible': [boolean] }>()
@@ -40,7 +50,6 @@ const emit = defineEmits<{ 'update:visible': [boolean] }>()
 const lastUpdated = __BUILD_DATE__
 const scriptVersion = __SCRIPT_VERSION__
 const xmlVersion = __XML_VERSION__
-const description = 'A tool for building and editing Windows cleanup & optimization templates.'
 
 function close() {
   emit('update:visible', false)
@@ -82,6 +91,9 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 .about-link:hover { text-decoration: underline; }
 .about-divider { border-top: 1px solid var(--card-border); margin: 6px 0; }
 .about-desc { font-size: 11px; color: var(--field-label); line-height: 1.5; }
+.about-powered { font-size: 10px; color: var(--field-label); margin-top: 6px; }
+.about-link-inline { color: var(--item-bar); text-decoration: none; }
+.about-link-inline:hover { text-decoration: underline; }
 .about-footer { display: flex; justify-content: flex-end; margin-top: 8px; }
 .about-btn {
   padding: 6px 18px; border-radius: 5px;

@@ -1,8 +1,8 @@
 <template>
   <nav class="navbar">
     <div class="nav-brand">
-      <img :src="logoUrl" class="nav-logo-img" alt="TE" />
-      <span class="nav-title">Workspace Optimizer</span>
+      <img :src="brand.logo" class="nav-logo-img" :alt="brand.name" @error="onLogoError" />
+      <span class="nav-title">{{ brand.name }}</span>
     </div>
     <div class="nav-actions">
       <button class="nav-btn" data-tooltip="Create a new template from built-in defaults" @click="emit('new')">New from Default</button>
@@ -26,7 +26,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { documentStore } from '../store/document'
-import logoUrl from '../assets/WorkspaceOptimizer.png'
+import { brand, onLogoError } from '../branding'
 
 const emit = defineEmits<{ new: []; open: []; save: []; manageos: []; pdf: []; about: []; togglesidebar: [] }>()
 const isDark = ref(true)

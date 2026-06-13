@@ -28,6 +28,17 @@ jobs:
         working-directory: WorkspaceOptimizer
         env:
           VITE_BASE_URL: /
+          # ── White-labeling (optional) ───────────────────────────────────
+          # Forks can rebrand the build with zero code changes by setting these
+          # repository Variables: Settings → Secrets and variables → Actions →
+          # Variables. All are optional; unset ones fall back to defaults.
+          # See README → "White-labeling for forks".
+          VITE_BRAND_NAME:        ${{ vars.BRAND_NAME }}
+          VITE_BRAND_VENDOR:      ${{ vars.BRAND_VENDOR }}
+          VITE_BRAND_URL:         ${{ vars.BRAND_URL }}
+          VITE_BRAND_DESCRIPTION: ${{ vars.BRAND_DESCRIPTION }}
+          VITE_BRAND_LOGO_URL:    ${{ vars.BRAND_LOGO_URL }}
+          VITE_BRAND_ACCENT:      ${{ vars.BRAND_ACCENT }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: ./WorkspaceOptimizer/dist

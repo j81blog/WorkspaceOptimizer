@@ -242,3 +242,58 @@ npm run test     # run unit tests
 Built with [Vue 3](https://vuejs.org/), [Vite](https://vitejs.dev/), and [TypeScript](https://www.typescriptlang.org/). No external UI framework.
 
 Deployed automatically to GitHub Pages on every push to `main` via `.github/workflows/deploy.yml`.
+
+---
+
+## White-labeling for forks
+
+If you fork this repository to build and host the app for your own company, you can
+rebrand it **without changing any code**. Branding is driven entirely by GitHub Actions
+**repository Variables** (these are inherited by your fork and are not secret).
+
+### How to set it up
+
+1. In your fork: **Settings → Secrets and variables → Actions → Variables → New repository variable**.
+2. Add any of the variables below (all optional — unset ones keep the defaults).
+3. Push to `main` (or run the workflow manually). The next build picks them up.
+
+| Variable               | Effect                                                                    | Example                          |
+| ---------------------- | ------------------------------------------------------------------------- | -------------------------------- |
+| `BRAND_NAME`           | App name in the navbar, browser tab title, and About dialog               | `Contoso Optimizer`              |
+| `BRAND_VENDOR`         | Your "Distributed by …" line in the About dialog                          | `Contoso IT`                     |
+| `BRAND_URL`            | Your website link in the About dialog                                     | `https://contoso.example`        |
+| `BRAND_DESCRIPTION`    | The description paragraph in the About dialog                             | `Internal Windows tuning tool`   |
+| `BRAND_LOGO_URL`       | An externally hosted logo image URL (see logo options below)              | `https://contoso.example/l.png`  |
+| `BRAND_ACCENT`         | Accent color as a hex value, applied across both themes                   | `#e11d48`                        |
+
+### Logo options
+
+The logo is resolved in this order:
+
+1. **`BRAND_LOGO_URL`** repository Variable, if set.
+2. **Convention file** — commit your logo to `WorkspaceOptimizer/public/brand-logo.png`.
+   It is served at the site root and used automatically.
+3. **Bundled default** — the original Workspace Optimizer logo, used if neither of the above is present.
+
+The convention file is recommended for self-hosting since it has no external dependency.
+
+### Attribution
+
+White-labeling changes the displayed product name, your vendor line, links, description,
+accent color, and logo. The original author credit — **John Billekens Consultancy & AppVentiX** —
+always remains visible in the About dialog, and a small "Powered by Workspace Optimizer"
+line appears when the app has been rebranded. Your own vendor line is shown **in addition
+to**, not instead of, the original credit. Please keep this attribution intact.
+
+### Local testing
+
+You can preview a branded build locally with an `.env.local` file inside `WorkspaceOptimizer/`:
+
+```bash
+# WorkspaceOptimizer/.env.local
+VITE_BRAND_NAME=Contoso Optimizer
+VITE_BRAND_VENDOR=Contoso IT
+VITE_BRAND_ACCENT=#e11d48
+```
+
+Then run `npm run dev` or `npm run build`.

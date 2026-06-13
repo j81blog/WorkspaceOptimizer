@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workspace Optimizer — Design 2 Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ──────────────────────────────────────────────────
+   CSS CUSTOM PROPERTIES — DARK (default)
+──────────────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --nav-bg:        #1e293b;
+  --nav-text:      #f1f5f9;
+  --app-bg:        #0f172a;
+  --sidebar-bg:    #0f172a;
+  --card-bg:       #1a2540;
+  --field-bg:      #131f35;
+  --border-1:      #1e293b;
+  --border-2:      #2d3f57;
+  --text:          #e2e8f0;
+  --muted:         #64748b;
+  --muted2:        #475569;
+  --accent:        #38bdf8;
+  --accent2:       #7dd3fc;
+  --add-color:     #6fcf97;
+  --add-bg:        #1d4e3a;
+  --del-color:     #ff8a8a;
+  --del-bg:        #4a1a1a;
+  --dup-color:     #b39ddb;
+  --dup-bg:        #2a2050;
+  --valid:         #2dd4bf;
+  --warning:       #fbbf24;
+  --error:         #f87171;
+  --status-bar-bg: #0d1626;
+  --scrollbar-thumb: #2d3f57;
+  --hover-bg:      rgba(56,189,248,0.07);
+  --selected-bg:   rgba(56,189,248,0.13);
+  --divider:       rgba(255,255,255,0.06);
+  --ribbon-btn-hover: rgba(255,255,255,0.08);
+  --ribbon-group-border: rgba(255,255,255,0.12);
+
+  /* Type accents */
+  --t-registry:     #fb923c;
+  --t-service:      #38bdf8;
+  --t-task:         #a78bfa;
+  --t-store:        #f472b6;
+  --t-ps:           #4ade80;
+  --t-file:         #2dd4bf;
+}
+
+[data-theme="light"] {
+  --nav-bg:        #1e293b;
+  --nav-text:      #f1f5f9;
+  --app-bg:        #f8fafc;
+  --sidebar-bg:    #f1f5f9;
+  --card-bg:       #ffffff;
+  --field-bg:      #fafbfc;
+  --border-1:      #e2e8f0;
+  --border-2:      #cbd5e1;
+  --text:          #1e293b;
+  --muted:         #64748b;
+  --muted2:        #94a3b8;
+  --accent:        #3b82f6;
+  --accent2:       #2563eb;
+  --add-color:     #2563eb;
+  --add-bg:        #dbeafe;
+  --del-color:     #dc2626;
+  --del-bg:        #fee2e2;
+  --dup-color:     #7c3aed;
+  --dup-bg:        #ede9fe;
+  --valid:         #2563eb;
+  --warning:       #d97706;
+  --error:         #dc2626;
+  --status-bar-bg: #e2e8f0;
+  --scrollbar-thumb: #cbd5e1;
+  --hover-bg:      rgba(59,130,246,0.06);
+  --selected-bg:   rgba(59,130,246,0.12);
+  --divider:       rgba(0,0,0,0.06);
+  --ribbon-btn-hover: rgba(255,255,255,0.12);
+  --ribbon-group-border: rgba(255,255,255,0.2);
+}
+
+/* ──────────────────────────────────────────────────
+   RESET & BASE
+──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  background: var(--app-bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+/* ──────────────────────────────────────────────────
+   TOP RIBBON
+──────────────────────────────────────────────────── */
+.ribbon {
+  background: var(--nav-bg);
+  color: var(--nav-text);
+  display: flex;
+  align-items: center;
+  height: 42px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-1);
+  padding: 0 6px;
+  gap: 0;
+  z-index: 100;
+  user-select: none;
+}
+
+/* Brand */
+.ribbon-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 0 4px;
+  margin-right: 4px;
+  border-right: 1px solid var(--ribbon-group-border);
+}
+.ribbon-logo {
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+.ribbon-title {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--nav-text);
+}
+
+/* Ribbon groups */
+.ribbon-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 0 6px;
+  border-right: 1px solid var(--ribbon-group-border);
+}
+.ribbon-group-label {
+  font-size: 9px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0 2px;
+  align-self: flex-end;
+  margin-bottom: 2px;
+  display: none; /* compact — shown in full labels below via wrapper */
+}
+
+.ribbon-spacer { flex: 1; }
+
+.ribbon-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 8px;
+}
+
+/* Ribbon buttons */
+.rbtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--nav-text);
+  transition: background 0.15s;
+  white-space: nowrap;
+  line-height: 1;
+}
+.rbtn:hover { background: var(--ribbon-btn-hover); }
+.rbtn:disabled { opacity: 0.38; cursor: not-allowed; }
+.rbtn .icon { font-size: 12px; line-height: 1; }
+
+.rbtn-accent {
+  background: rgba(56,189,248,0.15);
+  color: #7dd3fc;
+  border: 1px solid rgba(56,189,248,0.25);
+}
+.rbtn-accent:hover { background: rgba(56,189,248,0.25); }
+
+[data-theme="light"] .rbtn-accent {
+  background: rgba(59,130,246,0.12);
+  color: #2563eb;
+  border-color: rgba(59,130,246,0.3);
+}
+
+/* Filename pill */
+.ribbon-filename {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 5px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.ribbon-filename .dirty { color: var(--accent2); font-size: 14px; line-height: 1; }
+.ribbon-filename .fname { color: rgba(255,255,255,0.85); font-weight: 500; }
+
+/* Icon button (no label) */
+.ribbon-icon-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  border: none; background: transparent;
+  border-radius: 5px;
+  color: var(--nav-text);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.ribbon-icon-btn:hover { background: var(--ribbon-btn-hover); }
+
+/* ──────────────────────────────────────────────────
+   WORKSPACE (Explorer | Editor | Inspector)
+──────────────────────────────────────────────────── */
+.workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ──────────────────────────────────────────────────
+   EXPLORER PANEL (left)
+──────────────────────────────────────────────────── */
+.explorer {
+  width: 260px;
+  min-width: 180px;
+  max-width: 400px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border-2);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.2s ease;
+}
+.explorer.collapsed { width: 0; min-width: 0; border-right: none; overflow: hidden; }
+
+/* Explorer header */
+.explorer-header {
+  padding: 8px 8px 6px;
+  border-bottom: 1px solid var(--border-2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--sidebar-bg);
+  flex-shrink: 0;
+}
+
+.explorer-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 2px;
+}
+
+/* Item action toolbar */
+.explorer-actions {
+  display: flex;
+  gap: 3px;
+}
+.xbtn {
+  flex: 1;
+  padding: 4px 6px;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, opacity 0.15s;
+  line-height: 1;
+}
+.xbtn-add { background: var(--add-bg); color: var(--add-color); }
+.xbtn-add:hover { filter: brightness(1.15); }
+.xbtn-dup { background: var(--dup-bg); color: var(--dup-color); }
+.xbtn-dup:hover { filter: brightness(1.15); }
+.xbtn-dup:disabled, .xbtn-del:disabled { opacity: 0.35; cursor: not-allowed; }
+.xbtn-del { background: var(--del-bg); color: var(--del-color); }
+.xbtn-del:hover { filter: brightness(1.15); }
+
+/* Search row */
+.search-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-input {
+  width: 100%;
+  padding: 5px 26px 5px 8px;
+  background: var(--field-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+.search-clear {
+  position: absolute;
+  right: 5px;
+  background: none; border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px;
+}
+.search-clear:hover { color: var(--text); }
+
+/* Filter strip */
+.filter-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 3px;
+}
+.filter-select {
+  background: var(--field-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 10px;
+  padding: 3px 4px;
+  cursor: pointer;
+  outline: none;
+  width: 100%;
+}
+.filter-select:focus { border-color: var(--accent); }
+
+/* View + sort controls */
+.view-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.seg-ctrl {
+  display: flex;
+  background: var(--field-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 5px;
+  overflow: hidden;
+  flex: 1;
+}
+.seg-btn {
+  flex: 1;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.seg-btn.active {
+  background: var(--accent);
+  color: #0f172a;
+}
+[data-theme="light"] .seg-btn.active { color: #fff; }
+.sort-btn {
+  padding: 4px 8px;
+  background: var(--field-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--muted);
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.sort-btn:hover { background: var(--hover-bg); color: var(--text); }
+
+/* ── Explorer Tree ── */
+.explorer-tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.cat-group {}
+.cat-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: uppercase;
+  user-select: none;
+  transition: background 0.1s;
+}
+.cat-header:hover { background: var(--hover-bg); color: var(--text); }
+.cat-triangle { font-size: 8px; transition: transform 0.15s; display: inline-block; }
+.cat-triangle.open { transform: rotate(90deg); }
+.cat-badge {
+  margin-left: auto;
+  background: var(--border-2);
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.cat-items { display: flex; flex-direction: column; }
+.cat-items.hidden { display: none; }
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px 5px 20px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 0.1s, border-color 0.1s;
+  position: relative;
+}
+.tree-item:hover { background: var(--hover-bg); }
+.tree-item.selected {
+  background: var(--selected-bg);
+  border-left-color: var(--accent);
+}
+
+.type-icon {
+  width: 15px; height: 15px;
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.type-icon.Registry    { background: rgba(251,146,60,0.2);  color: #fb923c; }
+.type-icon.Service     { background: rgba(56,189,248,0.2);  color: #38bdf8; }
+.type-icon.ScheduledTask { background: rgba(167,139,250,0.2); color: #a78bfa; }
+.type-icon.StoreApp    { background: rgba(244,114,182,0.2); color: #f472b6; }
+.type-icon.PowerShell  { background: rgba(74,222,128,0.2);  color: #4ade80; }
+.type-icon.FileFolder  { background: rgba(45,212,191,0.2);  color: #2dd4bf; }
+
+.item-name {
+  flex: 1;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item-order-badge {
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--border-2);
+  color: var(--muted);
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.item-error-badge {
+  font-size: 9px;
+  color: var(--error);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Explorer footer */
+.explorer-footer {
+  padding: 5px 10px;
+  border-top: 1px solid var(--border-2);
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+}
+.footer-error { color: var(--error); font-weight: 600; }
+
+/* ──────────────────────────────────────────────────
+   CENTER EDITOR
+──────────────────────────────────────────────────── */
+.editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  background: var(--app-bg);
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-2);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.bc-seg { color: var(--muted); }
+.bc-sep { color: var(--muted2); }
+.bc-item { font-weight: 600; color: var(--text); }
+.type-badge {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.type-badge.Registry    { background: rgba(251,146,60,0.18);  color: #fb923c; }
+.type-badge.Service     { background: rgba(56,189,248,0.18);  color: #38bdf8; }
+.type-badge.ScheduledTask { background: rgba(167,139,250,0.18); color: #a78bfa; }
+.type-badge.StoreApp    { background: rgba(244,114,182,0.18); color: #f472b6; }
+.type-badge.PowerShell  { background: rgba(74,222,128,0.18);  color: #4ade80; }
+.type-badge.FileFolder  { background: rgba(45,212,191,0.18);  color: #2dd4bf; }
+
+/* Editor scroll area */
+.editor-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  user-select: none;
+}
+.card-header:hover { background: var(--hover-bg); }
+.card-arrow { font-size: 9px; color: var(--muted); transition: transform 0.15s; }
+.card-arrow.open { transform: rotate(90deg); }
+.card-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.card-body.hidden { display: none; }
+
+/* Form fields */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.field-full { grid-column: 1 / -1; }
+.field-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.field-label .req { color: var(--error); }
+
+.field-input, .field-select, .field-textarea {
+  width: 100%;
+  background: var(--field-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11.5px;
+  padding: 6px 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field-input:focus, .field-select:focus, .field-textarea:focus { border-color: var(--accent); }
+.field-textarea { min-height: 60px; resize: vertical; line-height: 1.5; }
+.field-code {
+  font-family: 'Courier New', monospace;
+  font-size: 10.5px;
+  min-height: 100px;
+}
+
+.cat-row {
+  display: flex;
+  gap: 4px;
+}
+.cat-row .field-select { flex: 1; }
+.cat-add-btn {
+  width: 28px; height: 30px;
+  border: 1px solid var(--border-2);
+  background: var(--add-bg);
+  color: var(--add-color);
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-weight: 700;
+  line-height: 1;
+  transition: filter 0.15s;
+}
+.cat-add-btn:hover { filter: brightness(1.15); }
+
+/* Hive + payload grid */
+.payload-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 10px;
+}
+
+/* ──────────────────────────────────────────────────
+   RIGHT INSPECTOR PANEL
+──────────────────────────────────────────────────── */
+.inspector {
+  width: 280px;
+  min-width: 220px;
+  background: var(--card-bg);
+  border-left: 1px solid var(--border-2);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.inspector-section {
+  border-bottom: 1px solid var(--border-2);
+  flex-shrink: 0;
+}
+.inspector-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border-2);
+  background: var(--sidebar-bg);
+}
+
+/* OS Mapping table */
+.os-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5px;
+}
+.os-table th {
+  padding: 5px 6px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border-2);
+}
+.os-table th:first-child { text-align: left; padding-left: 10px; }
+.os-table td {
+  padding: 4px 6px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.os-table td:first-child { text-align: left; padding-left: 10px; }
+.os-table tr:hover td { background: var(--hover-bg); }
+.os-table tr.disabled-row td { opacity: 0.4; }
+
+.os-row-enable {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.os-name { font-size: 10.5px; font-weight: 500; }
+
+/* Custom checkboxes */
+input[type="checkbox"] {
+  width: 13px; height: 13px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+input[type="checkbox"]:disabled { cursor: not-allowed; }
+
+/* Subsection label inside OS */
+.os-subsection-label {
+  padding: 6px 10px 3px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted2);
+}
+
+/* Validation issues */
+.inspector-issues {
+  flex: 1;
+  overflow-y: auto;
+}
+.issue-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--divider);
+  font-size: 10.5px;
+}
+.issue-icon-error  { color: var(--error); font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+.issue-icon-warn   { color: var(--warning); font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+.issue-text { flex: 1; color: var(--text); line-height: 1.4; }
+
+/* ──────────────────────────────────────────────────
+   STATUS BAR
+──────────────────────────────────────────────────── */
+.status-bar {
+  height: 24px;
+  background: var(--status-bar-bg);
+  border-top: 1px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 14px;
+  font-size: 10px;
+  color: var(--muted);
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.status-bar:hover { background: var(--hover-bg); }
+.status-valid   { color: var(--valid); font-weight: 700; }
+.status-error   { color: var(--error); font-weight: 700; }
+.status-warning { color: var(--warning); font-weight: 600; }
+.status-sep { color: var(--muted2); }
+.status-right { margin-left: auto; }
+
+/* Expandable status drawer */
+.status-drawer {
+  background: var(--card-bg);
+  border-top: 1px solid var(--border-2);
+  padding: 8px 12px;
+  max-height: 120px;
+  overflow-y: auto;
+  flex-shrink: 0;
+  display: none;
+}
+.status-drawer.open { display: block; }
+.status-issue-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 0;
+  font-size: 10.5px;
+  border-bottom: 1px solid var(--divider);
+}
+
+/* ──────────────────────────────────────────────────
+   MODAL OVERLAY
+──────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.hidden { display: none; }
+
+.modal {
+  background: var(--card-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 520px;
+  max-width: 680px;
+  max-height: 80vh;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-2);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.modal-close {
+  background: none; border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--hover-bg); color: var(--text); }
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  gap: 14px;
+}
+.modal-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border-2);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Manage OS modal layout */
+.os-modal-left {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.os-modal-list {
+  flex: 1;
+  background: var(--field-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 6px;
+  overflow-y: auto;
+  min-height: 160px;
+}
+.os-list-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--divider);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.os-list-item:hover { background: var(--hover-bg); }
+.os-list-item.selected { background: var(--selected-bg); }
+.os-tag { font-size: 9px; font-weight: 700; color: var(--muted); background: var(--border-2); padding: 1px 5px; border-radius: 3px; }
+.os-modal-actions { display: flex; gap: 4px; }
+.os-modal-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.os-builds-list {
+  background: var(--field-bg);
+  border: 1px solid var(--border-2);
+  border-radius: 5px;
+  min-height: 60px;
+  padding: 6px 8px;
+  font-size: 10.5px;
+}
+.build-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--border-2);
+  color: var(--text);
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin: 2px;
+  font-size: 10px;
+}
+.os-build-actions { display: flex; gap: 4px; }
+
+/* ── About Modal ── */
+.about-modal {
+  min-width: 380px;
+  max-width: 420px;
+}
+.about-logo-big {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: #fff; font-weight: 700;
+  margin-bottom: 12px;
+}
+.about-version { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+.about-links { display: flex; flex-direction: column; gap: 4px; }
+.about-link { color: var(--accent); font-size: 11px; text-decoration: none; }
+.about-link:hover { text-decoration: underline; }
+
+/* ── Add Category Mini-dialog ── */
+.mini-modal {
+  min-width: 300px;
+  max-width: 340px;
+}
+
+/* ── PDF Modal ── */
+.pdf-option-row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; padding: 4px 0; }
+.pdf-option-row input[type="checkbox"] { margin: 0; }
+
+/* ──────────────────────────────────────────────────
+   GENERIC BUTTONS
+──────────────────────────────────────────────────── */
+.btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: filter 0.15s, opacity 0.15s;
+}
+.btn:disabled { opacity: 0.38; cursor: not-allowed; }
+.btn-default {
+  background: var(--field-bg);
+  border: 1px solid var(--border-2);
+  color: var(--text);
+}
+.btn-default:hover:not(:disabled) { filter: brightness(1.15); }
+.btn-primary {
+  background: var(--accent);
+  color: #0f172a;
+}
+.btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
+[data-theme="light"] .btn-primary { color: #fff; }
+.btn-danger {
+  background: var(--del-bg);
+  color: var(--del-color);
+  border: 1px solid rgba(255,138,138,0.2);
+}
+.btn-danger:hover:not(:disabled) { filter: brightness(1.1); }
+.btn-add {
+  background: var(--add-bg);
+  color: var(--add-color);
+}
+.btn-add:hover:not(:disabled) { filter: brightness(1.1); }
+
+/* ──────────────────────────────────────────────────
+   DESIGN BADGE
+──────────────────────────────────────────────────── */
+.design-badge {
+  position: fixed;
+  bottom: 32px;
+  right: 10px;
+  background: rgba(251,146,60,0.9);
+  color: #0f172a;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* ──────────────────────────────────────────────────
+   MISC UTILITIES
+──────────────────────────────────────────────────── */
+.muted { color: var(--muted); }
+.separator-v {
+  width: 1px;
+  height: 20px;
+  background: var(--ribbon-group-border);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+.resize-handle {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+}
+.resize-handle:hover { background: var(--accent); }
+
+.section-divider {
+  height: 1px;
+  background: var(--border-2);
+  margin: 2px 0;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     TOP RIBBON
+═══════════════════════════════════════════════════ -->
+<div class="ribbon" role="toolbar" aria-label="Main toolbar">
+
+  <!-- Brand -->
+  <div class="ribbon-brand">
+    <div class="ribbon-logo">W</div>
+    <span class="ribbon-title">Workspace Optimizer</span>
+  </div>
+
+  <!-- File group -->
+  <div class="ribbon-group">
+    <button class="rbtn" title="Create a new template from built-in defaults">
+      <span class="icon">📄</span> New from Default
+    </button>
+    <button class="rbtn" title="Open an existing XML template file">
+      <span class="icon">📂</span> Open Template
+    </button>
+    <button class="rbtn rbtn-accent" id="btn-dl-xml" title="Download XML template">
+      <span class="icon">⬇</span> Download XML
+    </button>
+    <button class="rbtn rbtn-accent" title="Download PowerShell deployment script">
+      <span class="icon">⬇</span> Download Script
+    </button>
+  </div>
+
+  <!-- Tools group -->
+  <div class="ribbon-group">
+    <button class="rbtn" id="btn-manage-os" title="Manage operating systems" onclick="showModal('modal-manage-os')">
+      <span class="icon">🖥</span> Manage OS
+    </button>
+    <button class="rbtn" id="btn-pdf" title="Generate PDF summary report (requires valid template)" onclick="showModal('modal-pdf')">
+      <span class="icon">📋</span> PDF Report
+    </button>
+  </div>
+
+  <div class="ribbon-spacer"></div>
+
+  <!-- Right side -->
+  <div class="ribbon-right">
+    <div class="ribbon-filename">
+      <span class="fname">corporate-win11.xml</span>
+      <span class="dirty" title="Unsaved changes">●</span>
+    </div>
+    <div class="separator-v"></div>
+    <button class="rbtn" onclick="showModal('modal-about')" title="About Workspace Optimizer">
+      <span class="icon">ℹ</span> About
+    </button>
+    <button class="ribbon-icon-btn" id="theme-toggle" title="Toggle light/dark theme" onclick="toggleTheme()">☀</button>
+    <button class="ribbon-icon-btn" id="explorer-toggle" title="Toggle Explorer panel" onclick="toggleExplorer()">☰</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     WORKSPACE
+═══════════════════════════════════════════════════ -->
+<div class="workspace">
+
+  <!-- ── EXPLORER PANEL ── -->
+  <aside class="explorer" id="explorer-panel">
+
+    <div class="explorer-header">
+      <div class="explorer-title">Explorer</div>
+
+      <!-- Item action toolbar -->
+      <div class="explorer-actions">
+        <button class="xbtn xbtn-add" title="Add new optimization item">+ New</button>
+        <button class="xbtn xbtn-dup" title="Duplicate selected item">Duplicate</button>
+        <button class="xbtn xbtn-del" title="Delete selected item">Delete</button>
+      </div>
+
+      <!-- Search -->
+      <div class="search-row">
+        <input class="search-input" type="text" placeholder="Search items…" id="search-input">
+        <button class="search-clear" title="Clear search" onclick="document.getElementById('search-input').value=''">×</button>
+      </div>
+
+      <!-- Filter strip -->
+      <div class="filter-strip">
+        <select class="filter-select" title="Filter by category">
+          <option>All Categories</option>
+          <option>Privacy</option>
+          <option>Performance</option>
+          <option>Security</option>
+          <option>Cleanup</option>
+          <option>System</option>
+        </select>
+        <select class="filter-select" title="Filter by type">
+          <option>All Types</option>
+          <option>Registry</option>
+          <option>Service</option>
+          <option>ScheduledTask</option>
+          <option>StoreApp</option>
+          <option>PowerShell</option>
+          <option>FileFolder</option>
+        </select>
+        <select class="filter-select" title="Filter by OS">
+          <option>All OS</option>
+          <option>Windows 10</option>
+          <option>Windows 11</option>
+          <option>Server 2022</option>
+          <option>Server 2025</option>
+        </select>
+      </div>
+
+      <!-- View + sort controls -->
+      <div class="view-controls">
+        <div class="seg-ctrl">
+          <button class="seg-btn active" id="view-cat" onclick="setView('category')">Category</button>
+          <button class="seg-btn" id="view-ord" onclick="setView('order')">Deploy Order</button>
+        </div>
+        <button class="sort-btn" id="sort-btn" title="Toggle sort direction" onclick="toggleSort()">A→Z</button>
+      </div>
+    </div>
+
+    <!-- Tree -->
+    <div class="explorer-tree" id="explorer-tree">
+
+      <!-- Privacy category -->
+      <div class="cat-group">
+        <div class="cat-header" onclick="toggleCat(this)">
+          <span class="cat-triangle open">▶</span>
+          <span>Privacy</span>
+          <span class="cat-badge">3</span>
+        </div>
+        <div class="cat-items">
+          <div class="tree-item selected" onclick="selectItem(this, 'disable-telemetry')">
+            <div class="type-icon Registry" title="Registry">Rg</div>
+            <span class="item-name">Disable Telemetry</span>
+            <span class="item-order-badge">10</span>
+          </div>
+          <div class="tree-item" onclick="selectItem(this, 'remove-xbox')">
+            <div class="type-icon StoreApp" title="StoreApp">App</div>
+            <span class="item-name">Remove Xbox Game Bar</span>
+            <span class="item-order-badge">20</span>
+            <span class="item-error-badge" title="1 validation error">!</span>
+          </div>
+          <div class="tree-item" onclick="selectItem(this, 'disable-advertising')">
+            <div class="type-icon Registry" title="Registry">Rg</div>
+            <span class="item-name">Disable Advertising ID</span>
+            <span class="item-order-badge">30</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance category -->
+      <div class="cat-group">
+        <div class="cat-header" onclick="toggleCat(this)">
+          <span class="cat-triangle open">▶</span>
+          <span>Performance</span>
+          <span class="cat-badge">3</span>
+        </div>
+        <div class="cat-items">
+          <div class="tree-item" onclick="selectItem(this, 'disable-sysmain')">
+            <div class="type-icon Service" title="Service">Svc</div>
+            <span class="item-name">Disable SysMain Service</span>
+            <span class="item-order-badge">40</span>
+          </div>
+          <div class="tree-item" onclick="selectItem(this, 'disable-search-idx')">
+            <div class="type-icon Service" title="Service">Svc</div>
+            <span class="item-name">Disable Search Indexing</span>
+            <span class="item-order-badge">50</span>
+          </div>
+          <div class="tree-item" onclick="selectItem(this, 'cleanup-prefetch')">
+            <div class="type-icon FileFolder" title="FileFolder">FF</div>
+            <span class="item-name">Clean Prefetch Folder</span>
+            <span class="item-order-badge">60</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security category -->
+      <div class="cat-group">
+        <div class="cat-header" onclick="toggleCat(this)">
+          <span class="cat-triangle open">▶</span>
+          <span>Security</span>
+          <span class="cat-badge">2</span>
+        </div>
+        <div class="cat-items">
+          <div class="tree-item" onclick="selectItem(this, 'disable-remote-assist')">
+            <div class="type-icon Registry" title="Registry">Rg</div>
+            <span class="item-name">Disable Remote Assistance</span>
+            <span class="item-order-badge">70</span>
+          </div>
+          <div class="tree-item" onclick="selectItem(this, 'enable-dep')">
+            <div class="type-icon PowerShell" title="PowerShell">PS</div>
+            <span class="item-name">Enable DEP Policy</span>
+            <span class="item-order-badge">80</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- System category -->
+      <div class="cat-group">
+        <div class="cat-header" onclick="toggleCat(this)">
+          <span class="cat-triangle open">▶</span>
+          <span>System</span>
+          <span class="cat-badge">2</span>
+        </div>
+        <div class="cat-items">
+          <div class="tree-item" onclick="selectItem(this, 'set-power-plan')">
+            <div class="type-icon PowerShell" title="PowerShell">PS</div>
+            <span class="item-name">Set High Performance Power Plan</span>
+            <span class="item-order-badge">90</span>
+          </div>
+          <div class="tree-item" onclick="selectItem(this, 'disable-cortana-task')">
+            <div class="type-icon ScheduledTask" title="ScheduledTask">ST</div>
+            <span class="item-name">Disable Cortana Task</span>
+            <span class="item-order-badge">100</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="explorer-footer">
+      <span>10 items</span>
+      <span class="footer-error">1 error</span>
+    </div>
+  </aside>
+
+  <!-- ── CENTER EDITOR ── -->
+  <main class="editor">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <span class="bc-seg">Privacy</span>
+      <span class="bc-sep">›</span>
+      <span class="bc-item">Disable Telemetry</span>
+      <span class="type-badge Registry">Registry</span>
+    </div>
+
+    <!-- Scrollable editor area -->
+    <div class="editor-scroll">
+
+      <!-- General card -->
+      <div class="card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <span class="card-arrow open">▶</span>
+          <span>General</span>
+        </div>
+        <div class="card-body">
+          <div class="field-row">
+            <div>
+              <div class="field-label">Name <span class="req">*</span></div>
+              <input class="field-input" type="text" value="Disable Telemetry">
+            </div>
+            <div>
+              <div class="field-label">Order</div>
+              <input class="field-input" type="number" min="0" max="99999" value="10">
+            </div>
+          </div>
+
+          <div class="field-full">
+            <div class="field-label">Description</div>
+            <textarea class="field-input field-textarea">Disables Windows telemetry data collection by setting AllowTelemetry to 0 in the registry. Applies to all managed workstations.</textarea>
+          </div>
+
+          <div class="field-row">
+            <div>
+              <div class="field-label">Type <span class="req">*</span></div>
+              <select class="field-select">
+                <option>Registry</option>
+                <option>Service</option>
+                <option>ScheduledTask</option>
+                <option>StoreApp</option>
+                <option>PowerShell</option>
+                <option>FileFolder</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Category <span class="req">*</span></div>
+              <div class="cat-row">
+                <select class="field-select">
+                  <option selected>Privacy</option>
+                  <option>Performance</option>
+                  <option>Security</option>
+                  <option>Cleanup</option>
+                  <option>System</option>
+                </select>
+                <button class="cat-add-btn" title="Add new category" onclick="showModal('modal-add-cat')">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payload card — Registry -->
+      <div class="card">
+        <div class="card-header" onclick="toggleCard(this)">
+          <span class="card-arrow open">▶</span>
+          <span>Payload</span>
+          <span class="type-badge Registry" style="margin-left:auto;margin-right:0;">Registry</span>
+        </div>
+        <div class="card-body">
+
+          <div class="payload-grid-3">
+            <div>
+              <div class="field-label">Hive</div>
+              <select class="field-select">
+                <option>HKLM</option>
+                <option>HKCU</option>
+                <option>HKCR</option>
+                <option>HKU</option>
+                <option>HKCC</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Path</div>
+              <input class="field-input" type="text" value="SOFTWARE\Policies\Microsoft\Windows\DataCollection">
+            </div>
+            <div>
+              <div class="field-label">Value Name</div>
+              <input class="field-input" type="text" value="AllowTelemetry">
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div>
+              <div class="field-label">Action</div>
+              <select class="field-select">
+                <option selected>SetValue</option>
+                <option>RemoveValue</option>
+                <option>CreateKey</option>
+                <option>DeleteKey</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Registry Type</div>
+              <select class="field-select">
+                <option>DWord</option>
+                <option>String</option>
+                <option>ExpandString</option>
+                <option>MultiString</option>
+                <option>QWord</option>
+                <option>Binary</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label">Value</div>
+            <input class="field-input" type="text" value="0" style="max-width:120px;">
+          </div>
+
+          <!-- Other payload types reference -->
+          <div style="margin-top:6px; padding:8px 10px; background:var(--field-bg); border:1px solid var(--border-2); border-radius:6px; font-size:10px; color:var(--muted); line-height:1.6;">
+            <strong style="color:var(--muted);">Other payload types when selected:</strong><br>
+            <span style="color:var(--t-service);">Service</span> — Name, Action (Disabled/Manual/Automatic/…) &nbsp;|&nbsp;
+            <span style="color:var(--t-task);">ScheduledTask</span> — Name, Path, Action &nbsp;|&nbsp;
+            <span style="color:var(--t-store);">StoreApp</span> — Package Name &nbsp;|&nbsp;
+            <span style="color:var(--t-ps);">PowerShell</span> — Engine, Script (code editor) &nbsp;|&nbsp;
+            <span style="color:var(--t-file);">FileFolder</span> — Path, Action, Item Type, New Name
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ── RIGHT INSPECTOR PANEL ── -->
+  <aside class="inspector">
+
+    <!-- OS Mapping: Client OS -->
+    <div class="inspector-section">
+      <div class="inspector-section-header">OS Mapping</div>
+      <div style="overflow-x:auto;">
+        <table class="os-table">
+          <thead>
+            <tr>
+              <th>OS</th>
+              <th>Execute</th>
+              <th>Physical</th>
+              <th>Virtual</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="4" class="os-subsection-label">Client OS</td></tr>
+            <tr>
+              <td>
+                <div class="os-row-enable">
+                  <input type="checkbox" checked id="os-win10">
+                  <label class="os-name" for="os-win10">Win 10</label>
+                </div>
+              </td>
+              <td><input type="checkbox" checked></td>
+              <td><input type="checkbox" checked></td>
+              <td><input type="checkbox"></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="os-row-enable">
+                  <input type="checkbox" checked id="os-win11">
+                  <label class="os-name" for="os-win11">Win 11</label>
+                </div>
+              </td>
+              <td><input type="checkbox" checked></td>
+              <td><input type="checkbox" checked></td>
+              <td><input type="checkbox" checked></td>
+            </tr>
+            <tr class="disabled-row">
+              <td>
+                <div class="os-row-enable">
+                  <input type="checkbox" id="os-win10ltsc">
+                  <label class="os-name" for="os-win10ltsc">Win 10 LTSC</label>
+                </div>
+              </td>
+              <td><input type="checkbox" disabled></td>
+              <td><input type="checkbox" disabled></td>
+              <td><input type="checkbox" disabled></td>
+            </tr>
+
+            <tr><td colspan="4" class="os-subsection-label">Server OS</td></tr>
+            <tr>
+              <td>
+                <div class="os-row-enable">
+                  <input type="checkbox" checked id="os-srv2022">
+                  <label class="os-name" for="os-srv2022">Server 2022</label>
+                </div>
+              </td>
+              <td><input type="checkbox"></td>
+              <td><input type="checkbox" checked></td>
+              <td><input type="checkbox"></td>
+            </tr>
+            <tr class="disabled-row">
+              <td>
+                <div class="os-row-enable">
+                  <input type="checkbox" id="os-srv2025">
+                  <label class="os-name" for="os-srv2025">Server 2025</label>
+                </div>
+              </td>
+              <td><input type="checkbox" disabled></td>
+              <td><input type="checkbox" disabled></td>
+              <td><input type="checkbox" disabled></td>
+            </tr>
+            <tr class="disabled-row">
+              <td>
+                <div class="os-row-enable">
+                  <input type="checkbox" id="os-srv2019">
+                  <label class="os-name" for="os-srv2019">Server 2019</label>
+                </div>
+              </td>
+              <td><input type="checkbox" disabled></td>
+              <td><input type="checkbox" disabled></td>
+              <td><input type="checkbox" disabled></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Validation issues for selected item -->
+    <div class="inspector-section">
+      <div class="inspector-section-header" style="background:var(--card-bg);">
+        <span>Item Validation</span>
+      </div>
+    </div>
+    <div class="inspector-issues">
+      <div class="issue-row">
+        <span class="issue-icon-error">✕</span>
+        <span class="issue-text">Registry path cannot be empty and must include at least one sub-key.</span>
+      </div>
+      <div class="issue-row">
+        <span class="issue-icon-warn">⚠</span>
+        <span class="issue-text">Value "0" for DWord is valid but consider using hexadecimal notation (0x00000000).</span>
+      </div>
+      <div class="issue-row">
+        <span class="issue-icon-warn">⚠</span>
+        <span class="issue-text">No Virtual OS selected — item will not run on virtualized environments.</span>
+      </div>
+    </div>
+  </aside>
+
+</div><!-- /workspace -->
+
+<!-- ═══════════════════════════════════════════════════
+     STATUS BAR
+═══════════════════════════════════════════════════ -->
+<div class="status-bar" onclick="toggleStatusDrawer()" title="Click to expand/collapse issues">
+  <span class="status-error">✕ 1 error</span>
+  <span class="status-sep">|</span>
+  <span class="status-warning">⚠ 3 warnings</span>
+  <span class="status-sep">|</span>
+  <span>10 items across 4 categories</span>
+  <span class="status-right muted">corporate-win11.xml &nbsp;·&nbsp; Modified</span>
+</div>
+<div class="status-drawer" id="status-drawer">
+  <div class="status-issue-row">
+    <span style="color:var(--error);">✕</span>
+    <span style="font-weight:600; min-width:140px;">Remove Xbox Game Bar</span>
+    <span class="muted">StoreApp package name required</span>
+  </div>
+  <div class="status-issue-row">
+    <span style="color:var(--warning);">⚠</span>
+    <span style="font-weight:600; min-width:140px;">Disable Telemetry</span>
+    <span class="muted">No virtual OS selected</span>
+  </div>
+  <div class="status-issue-row">
+    <span style="color:var(--warning);">⚠</span>
+    <span style="font-weight:600; min-width:140px;">Disable Advertising ID</span>
+    <span class="muted">Consider adding description</span>
+  </div>
+  <div class="status-issue-row">
+    <span style="color:var(--warning);">⚠</span>
+    <span style="font-weight:600; min-width:140px;">Enable DEP Policy</span>
+    <span class="muted">Script references deprecated cmdlet</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL: MANAGE OS
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-manage-os">
+  <div class="modal" style="min-width:600px;">
+    <div class="modal-header">
+      <span>Manage Operating Systems</span>
+      <button class="modal-close" onclick="hideModal('modal-manage-os')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Left: OS list -->
+      <div class="os-modal-left">
+        <div style="font-size:10px; font-weight:700; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:2px;">Operating Systems</div>
+        <div class="os-modal-list">
+          <div class="os-list-item selected">
+            <span style="font-size:11px; font-weight:600;">Windows 10</span>
+            <span class="os-tag">W10</span>
+          </div>
+          <div class="os-list-item">
+            <span style="font-size:11px; font-weight:600;">Windows 11</span>
+            <span class="os-tag">W11</span>
+          </div>
+          <div class="os-list-item">
+            <span style="font-size:11px; font-weight:600;">Windows 10 LTSC</span>
+            <span class="os-tag">LTSC</span>
+          </div>
+          <div class="os-list-item">
+            <span style="font-size:11px; font-weight:600;">Server 2022</span>
+            <span class="os-tag">S22</span>
+          </div>
+          <div class="os-list-item">
+            <span style="font-size:11px; font-weight:600;">Server 2025</span>
+            <span class="os-tag">S25</span>
+          </div>
+          <div class="os-list-item">
+            <span style="font-size:11px; font-weight:600;">Server 2019</span>
+            <span class="os-tag">S19</span>
+          </div>
+        </div>
+        <div class="os-modal-actions">
+          <button class="btn btn-add" style="flex:1; font-size:10.5px;">+ Add OS</button>
+          <button class="btn btn-danger" style="font-size:10.5px;" disabled>Delete OS</button>
+        </div>
+      </div>
+
+      <!-- Right: OS detail -->
+      <div class="os-modal-right">
+        <div style="font-size:10px; font-weight:700; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:6px;">OS Details — Windows 10</div>
+
+        <div class="field-row">
+          <div>
+            <div class="field-label">Tag <span class="req">*</span></div>
+            <input class="field-input" type="text" value="W10">
+          </div>
+          <div>
+            <div class="field-label">Name <span class="req">*</span></div>
+            <input class="field-input" type="text" value="Windows 10">
+          </div>
+        </div>
+
+        <div>
+          <div class="field-label">Abbreviation <span style="font-weight:400;color:var(--muted2);">(auto-derived)</span></div>
+          <input class="field-input" type="text" placeholder="Win10" style="color:var(--muted);">
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px; padding:4px 0;">
+          <input type="checkbox" id="srv-os-check">
+          <label for="srv-os-check" style="font-size:11.5px; font-weight:500; cursor:pointer;">Server OS</label>
+        </div>
+
+        <div class="section-divider"></div>
+        <div style="font-size:10px; font-weight:700; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:6px;">Build Numbers (BuildStartsWith)</div>
+
+        <div class="os-builds-list">
+          <span class="build-tag">10240</span>
+          <span class="build-tag">10586</span>
+          <span class="build-tag">14393</span>
+          <span class="build-tag">15063</span>
+          <span class="build-tag">16299</span>
+          <span class="build-tag">17134</span>
+          <span class="build-tag">17763</span>
+          <span class="build-tag">18362</span>
+          <span class="build-tag">19041</span>
+          <span class="build-tag">19044</span>
+        </div>
+
+        <div class="os-build-actions">
+          <input class="field-input" type="text" placeholder="e.g. 22631" style="flex:1; font-size:11px;">
+          <button class="btn btn-add" style="font-size:10.5px; white-space:nowrap;">+ Add</button>
+          <button class="btn btn-danger" style="font-size:10.5px;" disabled>Remove</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="hideModal('modal-manage-os')">Cancel</button>
+      <button class="btn btn-primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL: ADD CATEGORY (mini dialog)
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-add-cat">
+  <div class="modal mini-modal">
+    <div class="modal-header">
+      <span>Add Category</span>
+      <button class="modal-close" onclick="hideModal('modal-add-cat')">✕</button>
+    </div>
+    <div class="modal-body" style="flex-direction:column; gap:10px;">
+      <div>
+        <div class="field-label">Category Name <span class="req">*</span></div>
+        <input class="field-input" type="text" placeholder="e.g. Accessibility" autofocus>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="hideModal('modal-add-cat')">Cancel</button>
+      <button class="btn btn-primary">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL: PDF REPORT
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-pdf">
+  <div class="modal" style="min-width:360px; max-width:420px;">
+    <div class="modal-header">
+      <span>Generate PDF Report</span>
+      <button class="modal-close" onclick="hideModal('modal-pdf')">✕</button>
+    </div>
+    <div class="modal-body" style="flex-direction:column; gap:10px;">
+      <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Select sections to include in the report:</div>
+      <div class="pdf-option-row"><input type="checkbox" checked id="pdf-summary"><label for="pdf-summary">Executive summary</label></div>
+      <div class="pdf-option-row"><input type="checkbox" checked id="pdf-items"><label for="pdf-items">Item details per category</label></div>
+      <div class="pdf-option-row"><input type="checkbox" checked id="pdf-os"><label for="pdf-os">OS applicability matrix</label></div>
+      <div class="pdf-option-row"><input type="checkbox" id="pdf-payload"><label for="pdf-payload">Full payload / registry values</label></div>
+      <div class="pdf-option-row"><input type="checkbox" checked id="pdf-valid"><label for="pdf-valid">Validation warnings &amp; errors</label></div>
+      <div class="pdf-option-row"><input type="checkbox" id="pdf-script"><label for="pdf-script">Embedded deployment script</label></div>
+      <div class="section-divider" style="margin:6px 0;"></div>
+      <div>
+        <div class="field-label">Report Title</div>
+        <input class="field-input" type="text" value="Windows Optimization Report">
+      </div>
+      <div>
+        <div class="field-label">Author / Company</div>
+        <input class="field-input" type="text" placeholder="Your organization name">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="hideModal('modal-pdf')">Cancel</button>
+      <button class="btn btn-primary">Generate PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL: ABOUT
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="modal-about">
+  <div class="modal about-modal" style="min-width:360px; max-width:400px;">
+    <div class="modal-header">
+      <span>About Workspace Optimizer</span>
+      <button class="modal-close" onclick="hideModal('modal-about')">✕</button>
+    </div>
+    <div class="modal-body" style="flex-direction:column; align-items:flex-start; gap:0; padding:20px 20px;">
+      <div class="about-logo-big">W</div>
+      <div style="font-size:16px; font-weight:700; margin-bottom:4px;">Workspace Optimizer</div>
+      <div class="about-version">Version 2.4.1 &nbsp;·&nbsp; Build 2026.06.13 &nbsp;·&nbsp; MIT License</div>
+      <p style="font-size:11px; color:var(--muted); line-height:1.6; margin-bottom:12px;">
+        An XML-driven tool for authoring, validating, and deploying Windows optimization profiles
+        across managed client and server environments. Generates XML templates and PowerShell
+        deployment scripts from a structured item catalog.
+      </p>
+      <div class="about-links">
+        <a class="about-link" href="#">Documentation &amp; User Guide</a>
+        <a class="about-link" href="#">GitHub Repository</a>
+        <a class="about-link" href="#">Report an Issue</a>
+        <a class="about-link" href="#">Changelog</a>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="hideModal('modal-about')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Design badge -->
+<div class="design-badge">Design 2 — Workbench</div>
+
+<!-- ═══════════════════════════════════════════════════
+     VANILLA JS
+═══════════════════════════════════════════════════ -->
+<script>
+/* ── Theme toggle ── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-toggle').textContent = isDark ? '☾' : '☀';
+}
+
+/* ── Explorer toggle ── */
+function toggleExplorer() {
+  const panel = document.getElementById('explorer-panel');
+  panel.classList.toggle('collapsed');
+}
+
+/* ── Category collapse ── */
+function toggleCat(header) {
+  const triangle = header.querySelector('.cat-triangle');
+  const items = header.nextElementSibling;
+  const isOpen = triangle.classList.contains('open');
+  triangle.classList.toggle('open', !isOpen);
+  items.classList.toggle('hidden', isOpen);
+}
+
+/* ── Item selection ── */
+function selectItem(el) {
+  document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+/* ── Card collapse ── */
+function toggleCard(header) {
+  const arrow = header.querySelector('.card-arrow');
+  const body = header.nextElementSibling;
+  const isOpen = arrow.classList.contains('open');
+  arrow.classList.toggle('open', !isOpen);
+  body.classList.toggle('hidden', isOpen);
+}
+
+/* ── View toggle ── */
+function setView(view) {
+  document.getElementById('view-cat').classList.toggle('active', view === 'category');
+  document.getElementById('view-ord').classList.toggle('active', view === 'order');
+  document.getElementById('sort-btn').style.display = view === 'category' ? '' : 'none';
+}
+
+/* ── Sort toggle ── */
+let sortAsc = true;
+function toggleSort() {
+  sortAsc = !sortAsc;
+  document.getElementById('sort-btn').textContent = sortAsc ? 'A→Z' : 'Z→A';
+}
+
+/* ── Status drawer ── */
+function toggleStatusDrawer() {
+  document.getElementById('status-drawer').classList.toggle('open');
+}
+
+/* ── Modals ── */
+function showModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+}
+function hideModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+/* Close modal on overlay click */
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.add('hidden');
+    }
+  });
+});
+
+/* OS row gating: enable Execute/Physical/Virtual only when row checkbox ticked */
+document.querySelectorAll('.os-table tbody tr').forEach(row => {
+  const enableCb = row.querySelector('td:first-child input[type="checkbox"]');
+  if (!enableCb) return;
+  const otherCbs = Array.from(row.querySelectorAll('td:not(:first-child) input[type="checkbox"]'));
+  enableCb.addEventListener('change', () => {
+    otherCbs.forEach(cb => {
+      cb.disabled = !enableCb.checked;
+      if (!enableCb.checked) cb.checked = false;
+    });
+    row.classList.toggle('disabled-row', !enableCb.checked);
+  });
+});
+</script>
+
+</body>
+</html>
