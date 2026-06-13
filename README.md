@@ -29,30 +29,48 @@ To open your own file, click **Open…** and select a `.xml` template from your 
 
 ## Interface overview
 
+The app uses a **Command Center** layout: a slim vertical **icon rail** on the far
+left holds the global actions, next to it is the **item list (explorer)**, and the
+rest of the window is the focused **item editor** with a thin top strip showing the
+product name, filename, and a **Modified** indicator.
+
 ```
-┌──────────────────────────────────────────────────────────┐
-│  Toolbar                                                 │
-├──────────────┬───────────────────────────────────────────┤
-│              │                                           │
-│  Sidebar     │  Item editor                              │
-│  (item list) │                                           │
-│              │                                           │
-└──────────────┴───────────────────────────────────────────┘
+┌────┬──────────────┬───────────────────────────────────────┐
+│    │ Top strip: brand · filename · ● Modified              │
+│ I  ├──────────────┬───────────────────────────────────────┤
+│ c  │              │                                        │
+│ o  │  Item list   │  Item editor                           │
+│ n  │  (explorer)  │  (General + Payload | OS Mapping)       │
+│    │              │                                        │
+│ r  │              ├────────────────────────────────────────┤
+│ a  │              │  Validation bar                        │
+│ il │              │                                        │
+└────┴──────────────┴───────────────────────────────────────┘
 ```
 
-### Toolbar buttons
+> This Command Center layout is the **default look with no configuration**. A fork can
+> restyle the brand (name, logo, accent color) on top of it via repository Variables —
+> see [White-labeling for forks](#white-labeling-for-forks). Branding overrides the
+> appearance; the layout stays the same.
 
-| Button               | Action                                                                               |
+### Icon rail actions
+
+The vertical icon rail holds every global action; hover any icon for its label.
+
+| Icon                 | Action                                                                               |
 | -------------------- | ------------------------------------------------------------------------------------ |
 | **New from Default** | Reset to the built-in default template                                               |
 | **Open Template**    | Load a `.xml` template file from disk, edit your own template                        |
 | **Download XML**     | Save the current template as an XML file (disabled when there are validation errors) |
-| **Download Script**  | Save the latest powershell script, to apply the optimization                         |
+| **Download Script**  | Save the latest PowerShell script, to apply the optimization                         |
 | **Manage OS**        | Add, edit, or remove OS definitions                                                  |
 | **PDF Report**       | Export a formatted PDF overview of all items                                         |
+| **About**            | Open the About dialog (versions, credits)                                            |
 | **☾ / ☀**           | Toggle dark/light theme (remembers your preference)                                  |
+| **☰**                | Toggle the item explorer (collapse/expand the list)                                  |
 
-The toolbar also shows the current filename and a yellow **Modified** indicator when there are unsaved changes.
+The top strip shows the product name, the current filename, and a yellow **Modified**
+indicator when there are unsaved changes.
 
 ### Sidebar
 
@@ -247,9 +265,12 @@ Deployed automatically to GitHub Pages on every push to `main` via `.github/work
 
 ## White-labeling for forks
 
-If you fork this repository to build and host the app for your own company, you can
-rebrand it **without changing any code**. Branding is driven entirely by GitHub Actions
-**repository Variables** (these are inherited by your fork and are not secret).
+The app ships with the **Command Center** layout and the default Workspace Optimizer
+branding (name, logo, cyan accent). If you fork this repository to build and host the
+app for your own company, you can **override that default branding without changing any
+code** — the layout is unchanged, only the brand identity is replaced. Branding is
+driven entirely by GitHub Actions **repository Variables** (these are inherited by your
+fork and are not secret).
 
 ### How to set it up
 
