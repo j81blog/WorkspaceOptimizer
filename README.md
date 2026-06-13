@@ -22,8 +22,8 @@ The editor lets you create and maintain these templates visually, without touchi
 
 Open the app at the link above. On first load it automatically opens the built-in `Windows.xml` default template so you can explore a real example right away.
 
-To start from scratch, click **New from Default** in the toolbar — this resets to the default template.
-To open your own file, click **Open…** and select a `.xml` template from your computer.
+To start from scratch, click **New from Default** in the icon rail — this resets to the default template.
+To open your own file, click **Open Template** and select a `.xml` template from your computer.
 
 ---
 
@@ -91,7 +91,7 @@ Editing area for the selected item, split into two columns:
 - **Left column** — General fields (name, description, type, category, order) and the type-specific payload
 - **Right column** — OS Mapping table
 
-Changes are applied immediately; the Modified indicator appears in the toolbar.
+Changes are applied immediately; the Modified indicator appears in the top strip.
 
 ---
 
@@ -197,7 +197,7 @@ Deleting an OS that is referenced by items will show a confirmation prompt.
 
 ## Validation
 
-The toolbar's **Download XML** button is disabled when the document has errors. A validation bar at the bottom of the editor shows all current errors and warnings with their location.
+The icon rail's **Download XML** action is disabled when the document has errors. A validation bar at the bottom of the editor shows all current errors and warnings with their location.
 
 Common validation rules:
 
