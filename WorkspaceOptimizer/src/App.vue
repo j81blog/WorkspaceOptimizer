@@ -1,15 +1,29 @@
 <template>
   <div class="app-root">
-    <NavBar @new="onNew" @open="onOpen" @save="onSave" @manageos="showOsDialog = true" @pdf="onPdf" @about="showAboutDialog = true" @togglesidebar="shell?.toggleSidebar()" />
-    <AppShell ref="shell">
-      <template #sidebar><ItemList /></template>
-      <template #main>
-        <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0">
-          <ItemEditor style="flex:1;overflow:hidden;min-height:0" />
-          <ValidationBar />
+    <IconRail @new="onNew" @open="onOpen" @save="onSave" @downloadscript="onDownloadScript"
+      @manageos="showOsDialog = true" @pdf="onPdf" @about="showAboutDialog = true"
+      @togglesidebar="shell?.toggleSidebar()" />
+    <div class="main-col">
+      <div class="top-strip">
+        <div class="top-brand">
+          <img :src="brand.logo" class="top-brand-logo" :alt="brand.name" @error="onLogoError" />
+          <span class="top-brand-title">{{ brand.name }}</span>
         </div>
-      </template>
-    </AppShell>
+        <div class="top-sep"></div>
+        <span v-if="documentStore.filename" class="top-filename">{{ documentStore.filename }}</span>
+        <span v-if="documentStore.dirty" class="top-modified"><span class="mod-dot"></span>Modified</span>
+        <div class="top-spacer"></div>
+      </div>
+      <AppShell ref="shell">
+        <template #sidebar><ItemList /></template>
+        <template #main>
+          <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0">
+            <ItemEditor style="flex:1;overflow:hidden;min-height:0" />
+            <ValidationBar />
+          </div>
+        </template>
+      </AppShell>
+    </div>
     <input ref="fileInput" type="file" accept=".xml" style="display:none" @change="onFileSelected" />
     <OSDialog v-model:visible="showOsDialog" />
     <PdfDialog v-model:visible="showPdfDialog" />
@@ -19,7 +33,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import NavBar from './components/NavBar.vue'
+import IconRail from './components/IconRail.vue'
 import AppShell from './components/AppShell.vue'
 import ItemList from './components/sidebar/ItemList.vue'
 import ItemEditor from './components/editor/ItemEditor.vue'
@@ -31,6 +45,7 @@ import { documentStore } from './store/document'
 import { uiStore } from './store/ui'
 import { parseXml } from './core/parser'
 import { serializeXml } from './core/serializer'
+import { brand, onLogoError } from './branding'
 
 const shell = ref<InstanceType<typeof AppShell> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -78,6 +93,13 @@ function onSave() {
 }
 
 function onPdf() { showPdfDialog.value = true }
+
+function onDownloadScript() {
+  const a = document.createElement('a')
+  a.href = import.meta.env.BASE_URL + 'Invoke-WindowsOptimization.ps1'
+  a.download = 'Invoke-WindowsOptimization.ps1'
+  a.click()
+}
 
 onMounted(() => { window.addEventListener('beforeunload', e => { if (documentStore.dirty) e.preventDefault() }) })
 </script>

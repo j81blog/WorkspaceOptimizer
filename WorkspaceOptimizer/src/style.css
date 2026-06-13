@@ -90,6 +90,9 @@
   --btn-danger-bg:   #4a1a1a;
   --btn-danger-bdr:  #6b2828;
   --btn-danger-txt:  #ff8a8a;
+
+  --rail-bg:         #0a1020;
+  --rail-hover:      #1a2540;
 }
 
 [data-theme="light"] {
@@ -173,6 +176,9 @@
   --btn-danger-bdr:  #fca5a5;
   --btn-danger-txt:  #dc2626;
   --scrollbar:       #cbd5e1;
+
+  --rail-bg:         #e2e8f0;
+  --rail-hover:      #cbd5e1;
 }
 
 /* ── Icon color filter ──────────────────────────────── */
@@ -229,9 +235,27 @@ select.field-inp { cursor: pointer; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Montserrat', sans-serif; background: var(--right-bg); }
 #app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-.app-root { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.app-root { flex: 1; display: flex; flex-direction: row; overflow: hidden; }
 
 /* ── Layout ─────────────────────────────────────────── */
+/* Right of the icon rail: top strip + (sidebar | editor) */
+.main-col { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* Top strip — brand + filename + modified indicator */
+.top-strip {
+  height: 32px; flex-shrink: 0; background: var(--nav-bg); color: var(--nav-text);
+  display: flex; align-items: center; padding: 0 14px; gap: 10px;
+  border-bottom: 1px solid #0f172a;
+}
+.top-brand { display: flex; align-items: center; gap: 7px; }
+.top-brand-logo { width: 18px; height: 18px; border-radius: 4px; object-fit: contain; }
+.top-brand-title { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--nav-text); }
+.top-sep { width: 1px; height: 14px; background: var(--nav-divider); }
+.top-filename { font-size: 11px; color: rgba(255,255,255,0.45); }
+.top-modified { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #fbbf24; }
+.top-modified .mod-dot { width: 5px; height: 5px; border-radius: 50%; background: #fbbf24; }
+.top-spacer { flex: 1; }
+
 .body-area { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 .sidebar {
   width: var(--sidebar-w, 360px); flex-shrink: 0;
