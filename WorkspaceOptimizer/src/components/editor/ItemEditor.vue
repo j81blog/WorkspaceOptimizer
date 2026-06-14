@@ -10,6 +10,15 @@
       <span class="ee-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
       <strong>Open Template</strong> icon in the left toolbar to open and edit your own template.
     </p>
+    <p class="ee-note">Once a template is loaded you can also:</p>
+    <p class="ee-disabled">
+      <span class="ee-icon"><svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg></span>
+      <strong>Download XML</strong> to save your template as an XML file.
+    </p>
+    <p class="ee-disabled">
+      <span class="ee-icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="4 2"/></svg></span>
+      <strong>Download Script</strong> to get the PowerShell deployment script.
+    </p>
   </div>
 
   <div v-else class="editor-layout">
@@ -211,6 +220,9 @@ function onPayloadUpdate(patch: Partial<ItemPayload>) {
 .editor-empty p { margin: 0; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; line-height: 1.5; }
 .ee-icon { display: inline-flex; align-items: center; }
 .ee-icon svg { width: 1.1em; height: 1.1em; fill: none; stroke: var(--item-bar); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+.ee-note { font-size: 0.7em; color: var(--field-label); margin-top: 6px; opacity: 0.85; }
+.ee-disabled { opacity: 0.45; }
+.ee-disabled .ee-icon svg { stroke: var(--field-label); }
 .editor-layout { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 .bc-bar { display: flex; align-items: center; gap: 8px; padding: 9px 16px; background: var(--bc-bg); border-bottom: 1px solid var(--bc-border); flex-shrink: 0; }
 .bc-cat { font-size: 11px; color: var(--bc-cat); font-weight: 500; }
