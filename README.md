@@ -22,14 +22,14 @@ The editor lets you create and maintain these templates visually, without touchi
 
 Open the app at the link above. On first load it automatically opens the built-in `Windows.xml` default template so you can explore a real example right away.
 
-To start from scratch, click **New from Default** in the icon rail — this resets to the default template.
+To start from scratch, click **New from Default** in the left toolbar — this resets to the default template.
 To open your own file, click **Open Template** and select a `.xml` template from your computer.
 
 ---
 
 ## Interface overview
 
-The app uses a **Command Center** layout: a slim vertical **icon rail** on the far
+The app uses a **Command Center** layout: a slim vertical **toolbar** on the far
 left holds the global actions, next to it is the **item list (explorer)**, and the
 rest of the window is the focused **item editor** with a thin top strip showing the
 product name, filename, and a **Modified** indicator.
@@ -37,14 +37,14 @@ product name, filename, and a **Modified** indicator.
 ```
 ┌────┬──────────────┬───────────────────────────────────────┐
 │    │ Top strip: brand · filename · ● Modified              │
-│ I  ├──────────────┬───────────────────────────────────────┤
-│ c  │              │                                        │
+│ T  ├──────────────┬───────────────────────────────────────┤
+│ o  │              │                                        │
 │ o  │  Item list   │  Item editor                           │
-│ n  │  (explorer)  │  (General + Payload | OS Mapping)       │
+│ l  │  (explorer)  │  (General + Payload | OS Mapping)       │
+│ b  │              │                                        │
+│ a  │              ├────────────────────────────────────────┤
+│ r  │              │  Validation bar                        │
 │    │              │                                        │
-│ r  │              ├────────────────────────────────────────┤
-│ a  │              │  Validation bar                        │
-│ il │              │                                        │
 └────┴──────────────┴───────────────────────────────────────┘
 ```
 
@@ -53,9 +53,9 @@ product name, filename, and a **Modified** indicator.
 > see [White-labeling for forks](#white-labeling-for-forks). Branding overrides the
 > appearance; the layout stays the same.
 
-### Icon rail actions
+### Toolbar actions
 
-The vertical icon rail holds every global action; hover any icon for its label.
+The vertical toolbar holds every global action; hover any icon for its label.
 
 | Icon                 | Action                                                                               |
 | -------------------- | ------------------------------------------------------------------------------------ |
@@ -197,7 +197,7 @@ Deleting an OS that is referenced by items will show a confirmation prompt.
 
 ## Validation
 
-The icon rail's **Download XML** action is disabled when the document has errors. A validation bar at the bottom of the editor shows all current errors and warnings with their location.
+The toolbar's **Download XML** action is disabled when the document has errors. A validation bar at the bottom of the editor shows all current errors and warnings with their location.
 
 Common validation rules:
 
