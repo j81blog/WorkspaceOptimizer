@@ -6,7 +6,6 @@
     <div class="main-col">
       <div class="top-strip">
         <div class="top-brand">
-          <img :src="brand.logo" class="top-brand-logo" :alt="brand.name" @error="onLogoError" />
           <span class="top-brand-title">{{ brand.name }}</span>
         </div>
         <div class="top-sep"></div>
@@ -45,7 +44,7 @@ import { documentStore } from './store/document'
 import { uiStore } from './store/ui'
 import { parseXml } from './core/parser'
 import { serializeXml } from './core/serializer'
-import { brand, onLogoError } from './branding'
+import { brand } from './branding'
 
 const shell = ref<InstanceType<typeof AppShell> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
