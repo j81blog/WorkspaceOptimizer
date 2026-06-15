@@ -278,6 +278,13 @@ fork and are not secret).
 2. Add any of the variables below (all optional — unset ones keep the defaults).
 3. Push to `main` (or run the workflow manually). The next build picks them up.
 
+> **Your branding survives upstream pulls.** Repository Variables are stored in your fork's
+> GitHub settings, **not** in the code. Pulling/merging new changes from the upstream
+> repository only updates source files — it never touches your Variables, so your branding
+> keeps working with zero merge conflicts. Set them once and forget them. (The same is true
+> of a `public/brand-logo.png` you commit: upstream never ships a file at that path, so it
+> won't conflict.)
+
 | Variable               | Effect                                                                    | Example                          |
 | ---------------------- | ------------------------------------------------------------------------- | -------------------------------- |
 | `BRAND_NAME`           | App name in the navbar, browser tab title, and About dialog               | `Contoso Optimizer`              |
@@ -308,13 +315,47 @@ to**, not instead of, the original credit. Please keep this attribution intact.
 
 ### Local testing
 
-You can preview a branded build locally with an `.env.local` file inside `WorkspaceOptimizer/`:
+Branding is read at **build time** from `VITE_`-prefixed environment variables, so for a
+local preview you set `VITE_BRAND_*` (not the bare `BRAND_*` names — those bare names are
+only used in CI, where the workflow maps `vars.BRAND_NAME` → `VITE_BRAND_NAME`, etc.).
+
+There are two ways to do this locally.
+
+**Option A — `.env.local` file (recommended).** Create `WorkspaceOptimizer/.env.local`:
 
 ```bash
-# WorkspaceOptimizer/.env.local
+# WorkspaceOptimizer/.env.local   (git-ignored — never committed)
 VITE_BRAND_NAME=Contoso Optimizer
 VITE_BRAND_VENDOR=Contoso IT
 VITE_BRAND_ACCENT=#e11d48
 ```
 
-Then run `npm run dev` or `npm run build`.
+Then run `npm run dev` or `npm run build` from `WorkspaceOptimizer/`.
+
+**Option B — command-line variables.** Set the variables in the shell **before** starting
+the dev server or build (Vite reads them when the process starts; setting them after the
+server is already running has no effect).
+
+PowerShell:
+
+```powershell
+cd WorkspaceOptimizer
+$env:VITE_BRAND_NAME   = "Contoso Optimizer"
+$env:VITE_BRAND_VENDOR = "Contoso IT"
+$env:VITE_BRAND_ACCENT = "#e11d48"
+npm run dev          # or: npm run build
+```
+
+Bash / macOS / Linux:
+
+```bash
+cd WorkspaceOptimizer
+VITE_BRAND_NAME="Contoso Optimizer" \
+VITE_BRAND_VENDOR="Contoso IT" \
+VITE_BRAND_ACCENT="#e11d48" \
+npm run dev          # or: npm run build
+```
+
+> The logo is **not** changed by `VITE_BRAND_NAME`/`VITE_BRAND_ACCENT` alone. To preview a
+> branded logo locally, also set `VITE_BRAND_LOGO_URL=...` or drop a file at
+> `WorkspaceOptimizer/public/brand-logo.png`.
