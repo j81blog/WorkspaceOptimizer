@@ -285,20 +285,23 @@ fork and are not secret).
 > of a `public/brand-logo.png` you commit: upstream never ships a file at that path, so it
 > won't conflict.)
 
-| Variable               | Effect                                                                    | Example                          |
-| ---------------------- | ------------------------------------------------------------------------- | -------------------------------- |
-| `BRAND_NAME`           | App name in the navbar, browser tab title, and About dialog               | `Contoso Optimizer`              |
-| `BRAND_VENDOR`         | Your "Distributed by …" line in the About dialog                          | `Contoso IT`                     |
-| `BRAND_URL`            | Your website link in the About dialog                                     | `https://contoso.example`        |
-| `BRAND_DESCRIPTION`    | The description paragraph in the About dialog                             | `Internal Windows tuning tool`   |
-| `BRAND_LOGO_URL`       | An externally hosted logo image URL (see logo options below)              | `https://contoso.example/l.png`  |
-| `BRAND_ACCENT`         | Accent color as a hex value, applied across both themes                   | `#e11d48`                        |
+| Variable                  | Effect                                                                    | Example                          |
+| ------------------------- | ------------------------------------------------------------------------- | -------------------------------- |
+| `VITE_BRAND_NAME`         | App name in the navbar, browser tab title, and About dialog               | `Contoso Optimizer`              |
+| `VITE_BRAND_VENDOR`       | Your "Distributed by …" line in the About dialog                          | `Contoso IT`                     |
+| `VITE_BRAND_URL`          | Your website link in the About dialog                                     | `https://contoso.example`        |
+| `VITE_BRAND_DESCRIPTION`  | The description paragraph in the About dialog                             | `Internal Windows tuning tool`   |
+| `VITE_BRAND_LOGO_URL`     | An externally hosted logo image URL (see logo options below)              | `https://contoso.example/l.png`  |
+| `VITE_BRAND_ACCENT`       | Accent color as a hex value, applied across both themes                   | `#e11d48`                        |
+
+The same variable names are used everywhere — in your repository Variables, on the command
+line, and in `.env.local` — so there is only one name to remember per setting.
 
 ### Logo options
 
 The logo is resolved in this order:
 
-1. **`BRAND_LOGO_URL`** repository Variable, if set.
+1. **`VITE_BRAND_LOGO_URL`** repository Variable, if set.
 2. **Convention file** — commit your logo to `WorkspaceOptimizer/public/brand-logo.png`.
    It is served at the site root and used automatically.
 3. **Bundled default** — the original Workspace Optimizer logo, used if neither of the above is present.
@@ -315,11 +318,8 @@ to**, not instead of, the original credit. Please keep this attribution intact.
 
 ### Local testing
 
-Branding is read at **build time** from `VITE_`-prefixed environment variables, so for a
-local preview you set `VITE_BRAND_*` (not the bare `BRAND_*` names — those bare names are
-only used in CI, where the workflow maps `vars.BRAND_NAME` → `VITE_BRAND_NAME`, etc.).
-
-There are two ways to do this locally.
+Branding is read at **build time** from the `VITE_BRAND_*` environment variables — the same
+names you use as repository Variables. There are two ways to set them locally.
 
 **Option A — `.env.local` file (recommended).** Create `WorkspaceOptimizer/.env.local`:
 
