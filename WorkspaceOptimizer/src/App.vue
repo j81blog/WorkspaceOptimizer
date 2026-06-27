@@ -1,18 +1,8 @@
 <template>
   <div class="app-root">
-    <IconRail @new="onNew" @open="onOpen" @save="onSave" @downloadscript="onDownloadScript"
-      @manageos="showOsDialog = true" @pdf="onPdf" @about="showAboutDialog = true"
-      @togglesidebar="shell?.toggleSidebar()" />
     <div class="main-col">
-      <div class="top-strip">
-        <div class="top-brand">
-          <span class="top-brand-title">{{ brand.name }}</span>
-        </div>
-        <div class="top-sep"></div>
-        <span v-if="documentStore.filename" class="top-filename">{{ documentStore.filename }}</span>
-        <span v-if="documentStore.dirty" class="top-modified"><span class="mod-dot"></span>Modified</span>
-        <div class="top-spacer"></div>
-      </div>
+      <IconRail @new="onNew" @open="onOpen" @save="onSave" @downloadscript="onDownloadScript"
+        @manageos="showOsDialog = true" @pdf="onPdf" @about="showAboutDialog = true" />
       <AppShell ref="shell">
         <template #sidebar><ItemList /></template>
         <template #main>
@@ -44,7 +34,6 @@ import { documentStore } from './store/document'
 import { uiStore } from './store/ui'
 import { parseXml } from './core/parser'
 import { serializeXml } from './core/serializer'
-import { brand } from './branding'
 
 const shell = ref<InstanceType<typeof AppShell> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)

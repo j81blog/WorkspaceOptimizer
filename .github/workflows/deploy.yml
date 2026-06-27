@@ -37,7 +37,7 @@ jobs:
           VITE_BRAND_VENDOR:      ${{ vars.VITE_BRAND_VENDOR }}
           VITE_BRAND_URL:         ${{ vars.VITE_BRAND_URL }}
           VITE_BRAND_DESCRIPTION: ${{ vars.VITE_BRAND_DESCRIPTION }}
-          VITE_BRAND_LOGO_URL:    ${{ vars.VITE_BRAND_LOGO_URL }}
+          VITE_BRAND_LOGO_VALUE:  ${{ vars.VITE_BRAND_LOGO_VALUE }}
           VITE_BRAND_ACCENT:      ${{ vars.VITE_BRAND_ACCENT }}
       - uses: actions/upload-pages-artifact@v5
         with:

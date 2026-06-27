@@ -22,30 +22,29 @@ The editor lets you create and maintain these templates visually, without touchi
 
 Open the app at the link above. On first load it automatically opens the built-in `Windows.xml` default template so you can explore a real example right away.
 
-To start from scratch, click **New from Default** in the left toolbar — this resets to the default template.
+To start from scratch, click **New from Default** in the toolbar — this resets to the default template.
 To open your own file, click **Open Template** and select a `.xml` template from your computer.
 
 ---
 
 ## Interface overview
 
-The app uses a **Command Center** layout: a slim vertical **toolbar** on the far
-left holds the global actions, next to it is the **item list (explorer)**, and the
-rest of the window is the focused **item editor** with a thin top strip showing the
-product name, filename, and a **Modified** indicator.
+The app uses a **Command Center** layout: a horizontal **toolbar** across the top
+holds the brand and every global action, below it on the left is the **item list
+(explorer)**, and the rest of the window is the focused **item editor**.
 
 ```
-┌────┬──────────────┬───────────────────────────────────────┐
-│    │ Top strip: brand · filename · ● Modified              │
-│ T  ├──────────────┬───────────────────────────────────────┤
-│ o  │              │                                        │
-│ o  │  Item list   │  Item editor                           │
-│ l  │  (explorer)  │  (General + Payload | OS Mapping)       │
-│ b  │              │                                        │
-│ a  │              ├────────────────────────────────────────┤
-│ r  │              │  Validation bar                        │
-│    │              │                                        │
-└────┴──────────────┴───────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ Toolbar: logo · brand │ actions… │ filename · ● Modified · ☾ │
+├──────────────┬──────────────────────────────────────────────┤
+│              │                                               │
+│  Item list   │  Item editor                                  │
+│  (explorer)  │  (General + Payload | OS Mapping)             │
+│              │                                               │
+│              ├──────────────────────────────────────────────┤
+│              │  Validation bar                               │
+│              │                                               │
+└──────────────┴──────────────────────────────────────────────┘
 ```
 
 > This Command Center layout is the **default look with no configuration**. A fork can
@@ -55,9 +54,11 @@ product name, filename, and a **Modified** indicator.
 
 ### Toolbar actions
 
-The vertical toolbar holds every global action; hover any icon for its label.
+The horizontal toolbar holds the brand on the left and every global action as a
+labeled button; the current filename, a **Modified** indicator, and the theme toggle
+sit on the right.
 
-| Icon                 | Action                                                                               |
+| Button               | Action                                                                               |
 | -------------------- | ------------------------------------------------------------------------------------ |
 | **New from Default** | Reset to the built-in default template                                               |
 | **Open Template**    | Load a `.xml` template file from disk, edit your own template                        |
@@ -67,9 +68,8 @@ The vertical toolbar holds every global action; hover any icon for its label.
 | **PDF Report**       | Export a formatted PDF overview of all items                                         |
 | **About**            | Open the About dialog (versions, credits)                                            |
 | **☾ / ☀**           | Toggle dark/light theme (remembers your preference)                                  |
-| **☰**                | Toggle the item explorer (collapse/expand the list)                                  |
 
-The top strip shows the product name, the current filename, and a yellow **Modified**
+The right side of the toolbar shows the current filename and a yellow **Modified**
 indicator when there are unsaved changes.
 
 ### Sidebar
@@ -91,7 +91,7 @@ Editing area for the selected item, split into two columns:
 - **Left column** — General fields (name, description, type, category, order) and the type-specific payload
 - **Right column** — OS Mapping table
 
-Changes are applied immediately; the Modified indicator appears in the top strip.
+Changes are applied immediately; the Modified indicator appears in the toolbar.
 
 ---
 
@@ -153,7 +153,7 @@ Performs a file or folder operation.
 | Field     | Description                      |
 | --------- | -------------------------------- |
 | Path      | Full path to the file or folder  |
-| Action    | `Delete`, `Rename`, `Remove`     |
+| Action    | `Remove`, `Rename`               |
 | Item Type | `File` or `Folder`               |
 | New Name  | Required when Action is `Rename` |
 
@@ -163,15 +163,20 @@ Performs a file or folder operation.
 
 Each item has an OS mapping that controls on which operating systems the action runs and in what context.
 
-The OS Mapping table shows a row per configured OS. Three checkboxes per OS control the behavior:
+The OS Mapping card lists every OS the template supports, grouped into **Client OS**
+and **Server OS**. Each OS row has a leading checkbox (next to the OS name) plus three
+behavior checkboxes:
 
-| Column       | Meaning                                          |
-| ------------ | ------------------------------------------------ |
-| **Execute**  | Whether the action is executed at all on this OS |
-| **Physical** | Applies when running on physical hardware        |
-| **Virtual**  | Applies when running in a virtual machine        |
+| Column        | Meaning                                                              |
+| ------------- | ------------------------------------------------------------------- |
+| *(OS name)*   | Include this OS in the item's mapping (unchecked = action does not apply) |
+| **Execute**   | Whether the action is executed at all on this OS                    |
+| **Physical**  | Applies when running on physical hardware                           |
+| **Virtual**   | Applies when running in a virtual machine                           |
 
-An OS that is not listed in an item's mapping means the action does not apply to that OS. You can add or remove OS entries per item using the `+` / `−` controls in the mapping table.
+An OS whose leading checkbox is unchecked is not part of the item's mapping, so the
+action does not apply to it. The set of available operating systems is managed globally
+via **Manage OS** in the toolbar.
 
 > **Rule:** if both Physical and Virtual are unchecked, Execute is automatically forced off.
 
@@ -291,7 +296,7 @@ fork and are not secret).
 | `VITE_BRAND_VENDOR`       | Your "Distributed by …" line in the About dialog                          | `Contoso IT`                     |
 | `VITE_BRAND_URL`          | Your website link in the About dialog                                     | `https://contoso.example`        |
 | `VITE_BRAND_DESCRIPTION`  | The description paragraph in the About dialog                             | `Internal Windows tuning tool`   |
-| `VITE_BRAND_LOGO_URL`     | An externally hosted logo image URL (see logo options below)              | `https://contoso.example/l.png`  |
+| `VITE_BRAND_LOGO_VALUE`   | Logo as a URL, a `data:` URI, or raw base64 (see logo options below)      | `https://contoso.example/l.png`  |
 | `VITE_BRAND_ACCENT`       | Accent color as a hex value, applied across both themes                   | `#e11d48`                        |
 
 The same variable names are used everywhere — in your repository Variables, on the command
@@ -301,12 +306,21 @@ line, and in `.env.local` — so there is only one name to remember per setting.
 
 The logo is resolved in this order:
 
-1. **`VITE_BRAND_LOGO_URL`** repository Variable, if set.
+1. **`VITE_BRAND_LOGO_VALUE`** repository Variable, if set. It accepts any of:
+   - an **http(s) URL** to a hosted image — `https://contoso.example/logo.png`
+   - a full **`data:` URI** — `data:image/png;base64,iVBORw0KGgo…`
+   - **raw base64** with no prefix — `iVBORw0KGgo…`. The image type (PNG, JPEG,
+     GIF, WebP, SVG) is auto-detected from the data's magic bytes and wrapped into
+     a `data:` URI for you. This is handy for fully self-contained builds with no
+     external image request.
 2. **Convention file** — commit your logo to `WorkspaceOptimizer/public/brand-logo.png`.
    It is served at the site root and used automatically.
-3. **Bundled default** — the original Workspace Optimizer logo, used if neither of the above is present.
+3. **Bundled default** — the original Workspace Optimizer logo, used if none of the above is present.
 
-The convention file is recommended for self-hosting since it has no external dependency.
+The logo is displayed at a fixed height with its width following the image's natural
+aspect ratio (capped so it never crowds the app title), so non-square logos render
+correctly. The convention file or an embedded base64 value is recommended for
+self-hosting since neither has an external dependency.
 
 ### Attribution
 
@@ -357,5 +371,5 @@ npm run dev          # or: npm run build
 ```
 
 > The logo is **not** changed by `VITE_BRAND_NAME`/`VITE_BRAND_ACCENT` alone. To preview a
-> branded logo locally, also set `VITE_BRAND_LOGO_URL=...` or drop a file at
-> `WorkspaceOptimizer/public/brand-logo.png`.
+> branded logo locally, also set `VITE_BRAND_LOGO_VALUE=...` (a URL, `data:` URI, or raw
+> base64) or drop a file at `WorkspaceOptimizer/public/brand-logo.png`.

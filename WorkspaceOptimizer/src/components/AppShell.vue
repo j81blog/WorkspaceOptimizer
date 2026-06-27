@@ -14,7 +14,7 @@
 import { ref, onMounted } from 'vue'
 
 const collapsed = ref(false)
-const width = ref(360)
+const width = ref(320)
 
 function setSidebarVar(w: number) {
   document.documentElement.style.setProperty('--sidebar-w', w + 'px')
@@ -31,7 +31,7 @@ function startDrag(e: MouseEvent) {
   const startW = width.value
   document.body.style.userSelect = 'none'
   const onMove = (ev: MouseEvent) => {
-    width.value = Math.max(220, Math.min(600, startW + ev.clientX - startX))
+    width.value = Math.max(320, Math.min(600, startW + ev.clientX - startX))
     setSidebarVar(width.value)
   }
   const onUp = () => {

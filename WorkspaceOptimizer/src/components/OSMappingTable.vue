@@ -1,7 +1,7 @@
 <template>
   <div class="card" v-if="supportedOs.length">
     <div class="card-hdr">
-      <div class="c-accent" style="background:#38bdf8"></div>
+      <div class="c-accent" style="background:#0ea5e9"></div>
       <span class="c-label">Client OS</span>
     </div>
     <div class="card-body os-section" v-if="clientOs.length">
@@ -92,13 +92,13 @@ function setField(tag: string, field: keyof OsMapping, value: boolean) {
 
 <style scoped>
 .os-section { padding: 10px 14px; }
-.os-col-headers { display: grid; grid-template-columns: 1fr 70px 70px 70px; gap: 4px; padding: 4px 0 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--os-hdr-txt); border-bottom: 1px solid var(--os-border); margin-bottom: 4px; }
+.os-col-headers { display: grid; grid-template-columns: 1fr 70px 70px 70px; gap: 4px; padding: 4px 0 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--os-hdr-txt); border-bottom: 1px solid var(--os-border); margin-bottom: 4px; }
 .os-col-chk { text-align: center; }
-.os-row { display: grid; grid-template-columns: 1fr 70px 70px 70px; gap: 4px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--os-border); }
+.os-row { display: grid; grid-template-columns: 1fr 70px 70px 70px; gap: 4px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--os-border); }
 .os-row:last-child { border-bottom: none; }
 .os-row:hover { background: var(--os-row-hover); }
 .os-name-cell { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--field-txt); cursor: pointer; }
-.os-chk { display: block; margin: 0 auto; cursor: pointer; accent-color: var(--item-bar); width: 14px; height: 14px; }
+.os-chk { display: block; margin: 0 auto; cursor: pointer; accent-color: var(--item-bar); width: 15px; height: 15px; border-radius: 4px; }
 .os-chk:disabled { opacity: 0.3; cursor: not-allowed; }
 .os-empty { font-size: 11px; color: var(--field-label); }
 </style>

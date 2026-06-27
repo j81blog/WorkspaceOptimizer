@@ -1,12 +1,12 @@
 <template>
   <div class="card">
     <div class="card-hdr">
-      <div class="c-accent" style="background:#fb923c"></div>
+      <div class="c-accent" style="background:#ea7a2e"></div>
       <span class="c-label">Registry</span>
     </div>
     <div class="card-body">
-      <div class="form-row">
-        <div class="fg">
+      <div class="field-grid">
+        <div class="col-5">
           <div class="field">
             <label class="field-lbl">Action *</label>
             <select class="field-inp" :value="p.action" @change="emit('update', { action: ($event.target as HTMLSelectElement).value })">
@@ -14,7 +14,7 @@
             </select>
           </div>
         </div>
-        <div v-if="p.action === 'SetValue'" class="fg">
+        <div v-if="p.action === 'SetValue'" class="col-4">
           <div class="field">
             <label class="field-lbl">Type *</label>
             <select class="field-inp" :value="p.registryType" @change="emit('update', { registryType: ($event.target as HTMLSelectElement).value })">
@@ -22,9 +22,7 @@
             </select>
           </div>
         </div>
-      </div>
-      <div class="form-row">
-        <div style="flex:1">
+        <div class="col-3">
           <div class="field">
             <label class="field-lbl">Hive *</label>
             <select class="field-inp" :value="p.hive" @change="emit('update', { hive: ($event.target as HTMLSelectElement).value })">
@@ -32,29 +30,29 @@
             </select>
           </div>
         </div>
-        <div style="flex:3">
+      </div>
+      <div class="field-grid">
+        <div class="col-12">
           <div class="field">
             <label class="field-lbl">Path *</label>
-            <input class="field-inp" :value="p.path" @input="emit('update', { path: ($event.target as HTMLInputElement).value })" placeholder="SOFTWARE\Policies\…" />
+            <input class="field-inp mono" :value="p.path" @input="emit('update', { path: ($event.target as HTMLInputElement).value })" placeholder="SOFTWARE\Policies\…" />
           </div>
         </div>
       </div>
-      <div v-if="needsName" class="form-row">
-        <div class="fg">
+      <div class="field-grid">
+        <div v-if="needsName" class="col-9">
           <div class="field">
             <label class="field-lbl">Value Name *</label>
-            <input class="field-inp" :value="p.name" @input="emit('update', { name: ($event.target as HTMLInputElement).value })" />
+            <input class="field-inp mono" :value="p.name" @input="emit('update', { name: ($event.target as HTMLInputElement).value })" />
           </div>
         </div>
-      </div>
-      <div v-if="p.action === 'SetValue'" class="form-row">
-        <div class="fg">
+        <div v-if="p.action === 'SetValue'" class="col-3">
           <div class="field">
             <label class="field-lbl">Value *</label>
-            <textarea v-if="isMultiline" class="field-inp field-ta" :value="p.value"
+            <textarea v-if="isMultiline" class="field-inp field-ta mono" :value="p.value"
               @input="emit('update', { value: ($event.target as HTMLTextAreaElement).value })"
               :placeholder="valuePlaceholder" rows="3" />
-            <input v-else class="field-inp" :value="p.value"
+            <input v-else class="field-inp mono" :value="p.value"
               @input="emit('update', { value: ($event.target as HTMLInputElement).value })"
               :placeholder="valuePlaceholder" />
           </div>

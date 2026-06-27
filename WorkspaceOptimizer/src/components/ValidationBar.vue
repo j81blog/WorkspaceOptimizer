@@ -40,7 +40,7 @@ function navigateToItem(itemId?: string) {
 
 <style scoped>
 .val-root { flex-shrink: 0; }
-.val-bar { display: flex; align-items: center; gap: 8px; padding: 7px 16px; font-size: 11px; font-weight: 600; cursor: pointer; border-top: 1px solid var(--card-border); }
+.val-bar { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 16px; font-size: 11px; font-weight: 700; cursor: pointer; border-top: 1px solid var(--card-border); }
 .val-bar.is-valid { background: rgba(45,212,191,0.08); color: #2dd4bf; }
 .val-bar.has-warnings { background: rgba(251,191,36,0.08); color: #fbbf24; }
 .val-bar.has-errors { background: rgba(248,113,113,0.08); color: #f87171; }

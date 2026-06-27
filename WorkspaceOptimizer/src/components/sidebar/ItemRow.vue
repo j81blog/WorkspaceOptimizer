@@ -3,7 +3,7 @@
     <div class="item-top">
       <img :src="iconSrc" class="item-icon" :alt="item.type" :style="{ filter: iconFilter }" />
       <span class="item-name">{{ item.name || '(unnamed)' }}</span>
-      <span class="item-order-badge">{{ item.order }}</span>
+      <span class="item-order-badge mono">{{ item.order }}</span>
       <span v-if="hasError" class="item-error">!</span>
     </div>
     <div v-if="item.description" class="item-desc">{{ item.description }}</div>
@@ -46,14 +46,14 @@ const hasError = computed(() => documentStore.validationResult.errors.some(e => 
 </script>
 
 <style scoped>
-.item { padding: 9px 16px; cursor: pointer; border-left: 2px solid transparent; border-bottom: 1px solid var(--sb-border); transition: background 0.1s; }
+.item { padding: 7px 12px; cursor: pointer; border-left: 2px solid transparent; border-bottom: 1px solid var(--sb-border); transition: background 0.1s; }
 .item:hover { background: var(--item-hover); }
 .item.active { background: var(--item-active); border-left-color: var(--item-bar); }
 .item-top { display: flex; align-items: center; gap: 8px; }
 .item-icon { width: 16px; height: 16px; flex-shrink: 0; }
-.item-name { font-size: 12px; font-weight: 600; color: var(--item-name); flex: 1; }
+.item-name { font-size: 11.5px; font-weight: 600; color: var(--item-name); flex: 1; }
 .item-order-badge { font-size: 10px; font-weight: 600; color: var(--item-desc); background: var(--sb-border); padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
 .item-error { font-size: 10px; font-weight: 700; color: #f87171; background: rgba(248,113,113,0.1); padding: 1px 5px; border-radius: 3px; }
-.item-desc { font-size: 10px; color: var(--item-desc); margin-left: 24px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.item-desc { font-size: 10px; color: var(--item-desc); margin-left: 24px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item-meta { font-size: 10px; color: var(--item-desc); margin-left: 24px; margin-top: 2px; }
 </style>

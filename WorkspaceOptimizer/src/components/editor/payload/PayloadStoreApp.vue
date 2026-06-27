@@ -5,8 +5,8 @@
       <span class="c-label">Store App</span>
     </div>
     <div class="card-body">
-      <div class="form-row">
-        <div class="fg">
+      <div class="field-grid">
+        <div class="col-12">
           <div class="field">
             <label class="field-lbl">Package Name *</label>
             <input class="field-inp" :value="p.name" @input="emit('update', { name: ($event.target as HTMLInputElement).value })" placeholder="e.g. Microsoft.BingWeather" />

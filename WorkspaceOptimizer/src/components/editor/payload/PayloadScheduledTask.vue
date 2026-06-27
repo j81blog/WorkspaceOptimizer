@@ -5,14 +5,14 @@
       <span class="c-label">Scheduled Task</span>
     </div>
     <div class="card-body">
-      <div class="form-row">
-        <div class="fg">
+      <div class="field-grid">
+        <div class="col-9">
           <div class="field">
             <label class="field-lbl">Task Name *</label>
             <input class="field-inp" :value="p.name" @input="emit('update', { name: ($event.target as HTMLInputElement).value })" />
           </div>
         </div>
-        <div class="fg">
+        <div class="col-3">
           <div class="field">
             <label class="field-lbl">Action *</label>
             <select class="field-inp" :value="p.action" @change="emit('update', { action: ($event.target as HTMLSelectElement).value })">
@@ -21,11 +21,11 @@
           </div>
         </div>
       </div>
-      <div class="form-row">
-        <div class="fg">
+      <div class="field-grid">
+        <div class="col-12">
           <div class="field">
             <label class="field-lbl">Path *</label>
-            <input class="field-inp" :value="p.path" @input="emit('update', { path: ($event.target as HTMLInputElement).value })" placeholder="\Microsoft\Windows\UpdateOrchestrator" />
+            <input class="field-inp mono" :value="p.path" @input="emit('update', { path: ($event.target as HTMLInputElement).value })" placeholder="\Microsoft\Windows\UpdateOrchestrator" />
           </div>
         </div>
       </div>

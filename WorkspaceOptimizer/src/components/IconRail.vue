@@ -1,45 +1,76 @@
 <template>
-  <nav class="rail">
-    <img :src="brand.logo" class="rail-logo" :alt="brand.name" @error="onLogoError" />
+  <header class="toolbar">
+    <!-- Brand block: occupies the sidebar width so action buttons align with the editor pane -->
+    <div class="tb-brand">
+      <div class="tb-logo-box">
+        <img :src="brand.logo" class="tb-logo" :alt="brand.name" @error="onLogoError" />
+      </div>
+      <span class="tb-brand-name">{{ brand.name }}</span>
+    </div>
 
-    <button class="rail-btn" data-tooltip="Create a new template from built-in defaults" @click="emit('new')">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    <!-- Action buttons -->
+    <button class="tb-btn" data-tooltip="Create a new template from built-in defaults" @click="emit('new')">
+      New from Default
     </button>
-    <button class="rail-btn" data-tooltip="Open an existing XML template file" @click="emit('open')">
-      <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-    </button>
-    <button class="rail-btn" :class="{ disabled: !canDownloadXml }" data-tooltip="Download the template as an XML file"
-      @click="canDownloadXml && emit('save')">
-      <svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
-    </button>
-    <button class="rail-btn" data-tooltip="Download the PowerShell deployment script" @click="emit('downloadscript')">
-      <svg class="icon-filled" viewBox="0 0 24 24"><path d="M21.83,4C22.32,4 22.63,4.4 22.5,4.89L19.34,19.11C19.23,19.6 18.75,20 18.26,20H2.17C1.68,20 1.37,19.6 1.5,19.11L4.66,4.89C4.77,4.4 5.25,4 5.74,4H21.83M15.83,16H11.83C11.37,16 11,16.38 11,16.84C11,17.31 11.37,17.69 11.83,17.69H15.83C16.3,17.69 16.68,17.31 16.68,16.84C16.68,16.38 16.3,16 15.83,16M5.78,16.28C5.38,16.56 5.29,17.11 5.57,17.5C5.85,17.92 6.41,18 6.81,17.73C14.16,12.56 14.21,12.5 14.26,12.47C14.44,12.31 14.53,12.09 14.54,11.87C14.55,11.67 14.5,11.5 14.38,11.31L9.46,6.03C9.13,5.67 8.57,5.65 8.21,6C7.85,6.32 7.83,6.88 8.16,7.24L12.31,11.68L5.78,16.28Z"/></svg>
-    </button>
-
-    <div class="rail-divider"></div>
-
-    <button class="rail-btn" data-tooltip="Add, edit or remove supported operating systems" @click="emit('manageos')">
-      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-    </button>
-    <button class="rail-btn" :class="{ disabled: !canPdf }" data-tooltip="Generate a PDF summary report"
-      @click="canPdf && emit('pdf')">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-    </button>
-    <button class="rail-btn" data-tooltip="About this application" @click="emit('about')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <button class="tb-btn" data-tooltip="Open an existing XML template file" @click="emit('open')">
+      Open Template
     </button>
 
-    <div class="rail-spacer"></div>
-    <div class="rail-divider"></div>
+    <div class="tb-divider"></div>
 
-    <button class="rail-btn" :data-tooltip="isDark ? 'Switch to light theme' : 'Switch to dark theme'" @click="toggleTheme">
+    <button
+      class="tb-btn tb-btn--accent"
+      :class="{ 'tb-btn--disabled': !canDownloadXml }"
+      data-tooltip="Download the template as an XML file"
+      @click="canDownloadXml && emit('save')"
+    >
+      Download XML
+    </button>
+    <button
+      class="tb-btn tb-btn--accent"
+      data-tooltip="Download the PowerShell deployment script"
+      @click="emit('downloadscript')"
+    >
+      Download Script
+    </button>
+
+    <div class="tb-divider"></div>
+
+    <button class="tb-btn" data-tooltip="Add, edit or remove supported operating systems" @click="emit('manageos')">
+      Manage OS
+    </button>
+    <button
+      class="tb-btn"
+      :class="{ 'tb-btn--disabled': !canPdf }"
+      data-tooltip="Generate a PDF summary report"
+      @click="canPdf && emit('pdf')"
+    >
+      PDF Report
+    </button>
+
+    <!-- Spacer -->
+    <div class="tb-spacer"></div>
+
+    <!-- File name + Modified indicator -->
+    <span v-if="documentStore.filename" class="tb-filename mono">{{ documentStore.filename }}</span>
+    <span v-if="documentStore.dirty" class="tb-modified"><span class="tb-mod-dot"></span>Modified</span>
+
+    <!-- About -->
+    <button class="tb-btn" data-tooltip="About this application" @click="emit('about')">
+      About
+    </button>
+
+    <!-- Theme toggle -->
+    <button
+      class="tb-icon-btn"
+      :class="{ 'tb-icon-btn--accent': true }"
+      :data-tooltip="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+      @click="toggleTheme"
+    >
       <svg v-if="isDark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg v-else viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
-    <button class="rail-btn" data-tooltip="Toggle the item explorer" @click="emit('togglesidebar')">
-      <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-  </nav>
+  </header>
 </template>
 
 <script setup lang="ts">
@@ -48,7 +79,7 @@ import { documentStore } from '../store/document'
 import { brand, onLogoError } from '../branding'
 
 const emit = defineEmits<{
-  new: []; open: []; save: []; downloadscript: []; manageos: []; pdf: []; about: []; togglesidebar: []
+  new: []; open: []; save: []; downloadscript: []; manageos: []; pdf: []; about: []
 }>()
 
 const canDownloadXml = computed(() =>
@@ -83,24 +114,180 @@ onUnmounted(() => mediaQuery.removeEventListener('change', onSystemChange))
 </script>
 
 <style scoped>
-.rail {
-  width: 56px; min-width: 56px; height: 100%;
-  background: var(--rail-bg); border-right: 1px solid var(--sb-border);
-  display: flex; flex-direction: column; align-items: center;
-  padding: 8px 0; gap: 2px; z-index: 10; position: relative;
+.toolbar {
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  background: var(--bc-bg);
+  border-bottom: 1px solid var(--card-border);
+  z-index: 10;
+  position: relative;
 }
-.rail-logo { width: 32px; height: 32px; border-radius: 8px; object-fit: contain; margin-bottom: 6px; flex-shrink: 0; }
-.rail-divider { width: 32px; height: 1px; background: var(--sb-input-bdr); margin: 4px 0; flex-shrink: 0; }
-.rail-spacer { flex: 1; }
-.rail-btn {
-  width: 40px; height: 40px; border-radius: 6px;
-  background: transparent; border: none; color: var(--sb-select-txt);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; position: relative; transition: background 0.15s, color 0.15s; flex-shrink: 0;
+
+/* Brand block — fixed to the sidebar width so the action buttons line up with the editor pane.
+   width = sidebar load/min width (320px) minus this toolbar's left padding (14px). */
+.tb-brand {
+  width: calc(320px - 14px);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
 }
-.rail-btn:hover { background: var(--rail-hover); color: var(--item-bar); }
-.rail-btn.disabled { opacity: 0.35; cursor: not-allowed; }
-.rail-btn.disabled:hover { background: transparent; color: var(--sb-select-txt); }
-.rail-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.rail-btn svg.icon-filled { fill: currentColor; stroke: none; }
+
+/* Logo box — fixed height, width grows to the logo's natural aspect ratio */
+.tb-logo-box {
+  height: 40px;
+  width: auto;
+  max-width: 160px;
+  flex-shrink: 0;
+  border: 1px dashed var(--field-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 3px;
+}
+.tb-logo {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+/* App title */
+.tb-brand-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bc-name);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Divider */
+.tb-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--card-border);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* Spacer */
+.tb-spacer {
+  flex: 1;
+}
+
+/* Labeled action buttons */
+.tb-btn {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1px solid var(--sb-btn-bdr);
+  background: var(--sb-btn-bg);
+  color: var(--sb-btn-txt);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tb-btn:hover {
+  background: var(--sb-btn-hover-bg);
+  border-color: var(--sb-btn-hover-bdr);
+}
+.tb-btn--accent {
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bdr);
+  color: var(--btn-primary-txt);
+}
+.tb-btn--accent:hover {
+  filter: brightness(1.1);
+}
+.tb-btn--disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.tb-btn--disabled:hover {
+  background: var(--sb-btn-bg);
+  border-color: var(--sb-btn-bdr);
+  filter: none;
+}
+.tb-btn--accent.tb-btn--disabled:hover {
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bdr);
+  filter: none;
+}
+
+/* Icon-only square buttons (hamburger, theme) */
+.tb-icon-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1px solid var(--sb-btn-bdr);
+  background: var(--sb-btn-bg);
+  color: var(--sb-btn-txt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tb-icon-btn:hover {
+  background: var(--sb-btn-hover-bg);
+  border-color: var(--sb-btn-hover-bdr);
+}
+.tb-icon-btn--accent {
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bdr);
+  color: var(--btn-primary-txt);
+}
+.tb-icon-btn--accent:hover {
+  filter: brightness(1.1);
+}
+.tb-icon-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Filename + Modified */
+.tb-filename {
+  font-size: 11px;
+  color: var(--as-txt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  flex-shrink: 1;
+}
+.tb-modified {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fbbf24;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tb-mod-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fbbf24;
+  flex-shrink: 0;
+}
 </style>

@@ -1,12 +1,12 @@
 <template>
   <div class="card">
     <div class="card-hdr">
-      <div class="c-accent" style="background:#2dd4bf"></div>
+      <div class="c-accent" style="background:#0ea5e9"></div>
       <span class="c-label">File / Folder</span>
     </div>
     <div class="card-body">
-      <div class="form-row">
-        <div class="fg">
+      <div class="field-grid">
+        <div class="col-6">
           <div class="field">
             <label class="field-lbl">Item Type *</label>
             <select class="field-inp" :value="p.itemType" @change="emit('update', { itemType: ($event.target as HTMLSelectElement).value })">
@@ -14,7 +14,7 @@
             </select>
           </div>
         </div>
-        <div class="fg">
+        <div class="col-6">
           <div class="field">
             <label class="field-lbl">Action *</label>
             <select class="field-inp" :value="p.action" @change="emit('update', { action: ($event.target as HTMLSelectElement).value })">
@@ -23,17 +23,19 @@
           </div>
         </div>
       </div>
-      <div class="form-row">
-        <div class="fg">
+      <div class="field-grid">
+        <div class="col-12">
           <div class="field">
             <label class="field-lbl">Path *</label>
-            <input class="field-inp" :value="p.path" @input="emit('update', { path: ($event.target as HTMLInputElement).value })" />
+            <input class="field-inp mono" :value="p.path" @input="emit('update', { path: ($event.target as HTMLInputElement).value })" />
           </div>
         </div>
-        <div v-if="p.action === 'Rename'" class="fg">
+      </div>
+      <div v-if="p.action === 'Rename'" class="field-grid">
+        <div class="col-12">
           <div class="field">
             <label class="field-lbl">New Name *</label>
-            <input class="field-inp" :value="p.newName" @input="emit('update', { newName: ($event.target as HTMLInputElement).value })" />
+            <input class="field-inp mono" :value="p.newName" @input="emit('update', { newName: ($event.target as HTMLInputElement).value })" />
           </div>
         </div>
       </div>

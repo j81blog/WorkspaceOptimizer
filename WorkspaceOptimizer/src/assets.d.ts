@@ -11,7 +11,7 @@ interface ImportMetaEnv {
   readonly VITE_BRAND_VENDOR?: string
   readonly VITE_BRAND_URL?: string
   readonly VITE_BRAND_DESCRIPTION?: string
-  readonly VITE_BRAND_LOGO_URL?: string
+  readonly VITE_BRAND_LOGO_VALUE?: string
   readonly VITE_BRAND_ACCENT?: string
 }
 

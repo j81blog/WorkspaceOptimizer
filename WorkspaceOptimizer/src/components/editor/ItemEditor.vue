@@ -1,23 +1,16 @@
 <template>
   <div v-if="!item" class="editor-empty">
     <p>
-      Click the
-      <span class="ee-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span>
-      <strong>New from Default</strong> icon in the left toolbar to start with a default template.
+      Click <strong>New from Default</strong> in the toolbar to start with a default template.
     </p>
     <p>
-      Click the
-      <span class="ee-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
-      <strong>Open Template</strong> icon in the left toolbar to open and edit your own template.
+      Click <strong>Open Template</strong> in the toolbar to open and edit your own template.
     </p>
     <p>
-      Click the
-      <span class="ee-icon"><svg class="icon-filled" viewBox="0 0 24 24"><path d="M21.83,4C22.32,4 22.63,4.4 22.5,4.89L19.34,19.11C19.23,19.6 18.75,20 18.26,20H2.17C1.68,20 1.37,19.6 1.5,19.11L4.66,4.89C4.77,4.4 5.25,4 5.74,4H21.83M15.83,16H11.83C11.37,16 11,16.38 11,16.84C11,17.31 11.37,17.69 11.83,17.69H15.83C16.3,17.69 16.68,17.31 16.68,16.84C16.68,16.38 16.3,16 15.83,16M5.78,16.28C5.38,16.56 5.29,17.11 5.57,17.5C5.85,17.92 6.41,18 6.81,17.73C14.16,12.56 14.21,12.5 14.26,12.47C14.44,12.31 14.53,12.09 14.54,11.87C14.55,11.67 14.5,11.5 14.38,11.31L9.46,6.03C9.13,5.67 8.57,5.65 8.21,6C7.85,6.32 7.83,6.88 8.16,7.24L12.31,11.68L5.78,16.28Z"/></svg></span>
-      <strong>Download Script</strong> icon in the left toolbar to get the PowerShell deployment script anytime.
+      Click <strong>Download Script</strong> in the toolbar to get the PowerShell deployment script anytime.
     </p>
     <p class="ee-note">Once a template is loaded you can also:</p>
     <p class="ee-disabled">
-      <span class="ee-icon"><svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg></span>
       <strong>Download XML</strong> to save your configured template as an XML file.
     </p>
   </div>
@@ -28,7 +21,7 @@
       <span class="bc-cat">{{ item.category || '—' }}</span>
       <span class="bc-sep">›</span>
       <span class="bc-name">{{ item.name || '(unnamed)' }}</span>
-      <span class="bc-badge">{{ item.type }}</span>
+      <span class="bc-badge" :style="{ color: accentColor, borderColor: accentColor, background: accentColor + '1f' }">{{ item.type }}</span>
     </div>
 
     <!-- Scrollable editor column -->
@@ -39,18 +32,19 @@
           <!-- General card -->
           <div class="card" style="margin-bottom:12px">
             <div class="card-hdr">
-              <div class="c-accent" :style="{ background: accentColor }"></div>
+              <div class="c-accent" style="background:var(--item-bar)"></div>
               <span class="c-label">General</span>
             </div>
             <div class="card-body">
-              <div class="form-row">
-                <div style="flex:3">
+              <!-- Line 1: Name + Order (75% / 25%) -->
+              <div class="field-grid">
+                <div class="col-9">
                   <div class="field">
                     <label class="field-lbl">Name *</label>
                     <input class="field-inp" :value="item.name" @input="update('name', ($event.target as HTMLInputElement).value)" />
                   </div>
                 </div>
-                <div style="flex:1">
+                <div class="col-3">
                   <div class="field">
                     <label class="field-lbl">Order</label>
                     <input class="field-inp" type="number" min="0" max="99999" :value="item.order"
@@ -58,16 +52,18 @@
                   </div>
                 </div>
               </div>
-              <div class="form-row">
-                <div class="fg">
+              <!-- Line 2: Description (full width) -->
+              <div class="field-grid">
+                <div class="col-12">
                   <div class="field">
                     <label class="field-lbl">Description</label>
                     <textarea ref="descRef" class="field-inp field-ta" rows="1" :value="item.description" @input="onDescInput" />
                   </div>
                 </div>
               </div>
-              <div class="form-row">
-                <div class="fg">
+              <!-- Line 3: Type + Category -->
+              <div class="field-grid">
+                <div class="col-6">
                   <div class="field">
                     <label class="field-lbl">Type *</label>
                     <select class="field-inp" :value="item.type" @change="onTypeChange(($event.target as HTMLSelectElement).value as ItemType)">
@@ -75,7 +71,7 @@
                     </select>
                   </div>
                 </div>
-                <div class="fg">
+                <div class="col-6">
                   <div class="field">
                     <label class="field-lbl">Category *</label>
                     <div class="cat-row">
