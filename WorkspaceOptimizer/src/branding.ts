@@ -122,6 +122,26 @@ export const brand = {
   accent: str(env.VITE_BRAND_ACCENT),
 }
 
+/**
+ * Point the browser-tab favicon at the brand logo, so white-label forks get
+ * their own favicon without touching index.html. If the brand logo fails to
+ * load (e.g. a missing convention file), fall back to the bundled default —
+ * mirroring `onLogoError` for the on-page `<img>`.
+ */
+export function applyFavicon() {
+  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+  if (!link) {
+    link = document.createElement('link')
+    link.rel = 'icon'
+    document.head.appendChild(link)
+  }
+  const icon = link
+  const test = new Image()
+  test.onload = () => { icon.href = brand.logo }
+  test.onerror = () => { icon.href = brand.fallbackLogo }
+  test.src = brand.logo
+}
+
 /** `<img @error>` handler: if the convention logo file is missing, use the bundled one. */
 export function onLogoError(e: Event) {
   const img = e.target as HTMLImageElement
@@ -145,6 +165,7 @@ export function brandUrlLabel(): string {
  */
 export function applyBranding() {
   document.title = brand.name
+  applyFavicon()
 
   if (brand.accent) {
     const root = document.documentElement.style

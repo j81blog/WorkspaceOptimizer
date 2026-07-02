@@ -213,13 +213,13 @@ function onPayloadUpdate(patch: Partial<ItemPayload>) {
 </script>
 
 <style scoped>
-.editor-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: var(--bc-name); font-size: 22px; gap: 14px; }
+.editor-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: var(--bc-name); font-size: 18px; gap: 14px; }
 .editor-empty p { margin: 0; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; line-height: 1.5; }
 .ee-icon { display: inline-flex; align-items: center; }
 .ee-icon svg { width: 1.1em; height: 1.1em; fill: none; stroke: var(--item-bar); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
 .ee-icon svg.icon-filled { fill: var(--item-bar); stroke: none; }
 .ee-disabled .ee-icon svg.icon-filled { fill: var(--field-label); }
-.ee-note { font-size: 0.7em; color: var(--field-label); margin-top: 6px; opacity: 0.85; }
+.ee-note { color: var(--field-label); margin-top: 6px; opacity: 0.85; }
 .ee-disabled { opacity: 0.45; }
 .ee-disabled .ee-icon svg { stroke: var(--field-label); }
 .editor-layout { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
