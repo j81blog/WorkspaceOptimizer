@@ -34,17 +34,17 @@ holds the brand and every global action, below it on the left is the **item list
 (explorer)**, and the rest of the window is the focused **item editor**.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────────┐
 │ Toolbar: logo · brand │ actions… │ filename · ● Modified · ☾ │
-├──────────────┬──────────────────────────────────────────────┤
+├──────────────┬───────────────────────────────────────────────┤
 │              │                                               │
 │  Item list   │  Item editor                                  │
 │  (explorer)  │  (General + Payload | OS Mapping)             │
 │              │                                               │
-│              ├──────────────────────────────────────────────┤
+│              ├───────────────────────────────────────────────┤
 │              │  Validation bar                               │
 │              │                                               │
-└──────────────┴──────────────────────────────────────────────┘
+└──────────────┴───────────────────────────────────────────────┘
 ```
 
 > This Command Center layout is the **default look with no configuration**. A fork can
@@ -163,7 +163,7 @@ Performs a file or folder operation.
 
 Each item has an OS mapping that controls on which operating systems the action runs and in what context.
 
-The OS Mapping card lists every OS the template supports, grouped into **Client OS**
+The OS Mapping lists every OS the template supports, grouped into **Client OS**
 and **Server OS**. Each OS row has a leading checkbox (next to the OS name) plus three
 behavior checkboxes:
 
