@@ -5,7 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/validate-catalog.mjs",
     "build": "vue-tsc && vite build",
+    "validate:catalog": "node scripts/validate-catalog.mjs",
+    "catalog:sync": "node scripts/sync-catalog.mjs",
+    "catalog:check": "node scripts/sync-catalog.mjs --check",
+    "review:submission": "node scripts/review-submission.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

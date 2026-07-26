@@ -1,0 +1,53 @@
+name: Validate pull request
+
+# Runs on every PR so a contributed template or snippet is checked before review,
+# not after it reaches main. The deploy workflow only runs on push, so without this a
+# broken submission would fail after merging.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: WorkspaceOptimizer
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: WorkspaceOptimizer/package-lock.json
+      - run: npm ci
+
+      # Catalog and variables: malformed JSON, a missing or broken XML, a duplicate id.
+      - name: Validate marketplace catalog
+        run: npm run validate:catalog
+
+      # index.json is generated, so a submission that adds a file without regenerating it
+      # would ship a catalog that does not list it.
+      - name: Check catalog is in sync
+        run: npm run catalog:check
+
+      - name: Type check and unit tests
+        run: |
+          npx vue-tsc --noEmit
+          npm run test
+
+      # Not a gate: prints what each submitted file would do to a machine so the reviewer
+      # reads the risky parts. Deleting files and running scripts are legitimate here, so
+      # this cannot be decided automatically.
+      - name: Summarize submitted templates and snippets
+        if: always()
+        run: npm run review:submission
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_BASE_URL: /

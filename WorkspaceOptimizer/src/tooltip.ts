@@ -48,6 +48,14 @@ function hide() {
   if (el) el.style.display = 'none'
 }
 
+/**
+ * Dismiss the tooltip from code. Needed when a click opens something over the
+ * hovered element, so the pointer never leaves, so no mouseout fires.
+ */
+export function hideTooltip() {
+  hide()
+}
+
 export function initTooltips() {
   document.addEventListener('mouseover', e => {
     const target = (e.target as HTMLElement).closest('[data-tooltip]') as HTMLElement | null

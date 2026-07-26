@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "name": "Workspace Optimizer Catalog",
+  "updated": "2026-07-26",
+  "entries": [
+    {
+      "id": "f0d453d3-bd0d-4c7f-b79c-6001c0c89fd0",
+      "kind": "snippet",
+      "name": "Visual Optimizations",
+      "url": "snippet/VisualEffects.xml",
+      "description": "Optimizes performance by disabling many of the Windows visual effects, such as animations and shadows.\nIMPORTANT: These settings will only be in-effect for new user profiles. Not excising user profiles.",
+      "version": "2026.726.2102",
+      "author": "John Billekens Consultancy",
+      "category": "Visual Effects",
+      "tags": [
+        "Performance",
+        "Graphics"
+      ],
+      "itemCount": 17
+    },
+    {
+      "id": "7aa42628-955f-4112-bcc7-837faa2fdd32",
+      "kind": "template",
+      "name": "Default Template",
+      "url": "../Windows.xml",
+      "description": "The built-in Windows cleanup and optimization template.",
+      "version": "2026.429.2230",
+      "author": "John Billekens Consultancy",
+      "category": "Baseline",
+      "tags": [
+        "performance",
+        "optimization"
+      ],
+      "itemCount": 221
+    }
+  ]
+}

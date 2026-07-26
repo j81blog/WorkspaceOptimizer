@@ -34,7 +34,9 @@
 
   <div class="sb-actions">
     <div class="action-row">
-      <button class="sb-btn add" data-tooltip="Add a new item" @click="onAdd">+ New</button>
+      <button class="sb-btn add" :disabled="!documentStore.document"
+        :data-tooltip="documentStore.document ? 'Add a new item' : 'Start a template first, with Options → New template'"
+        @click="onAdd">+ New</button>
       <button class="sb-btn dup" :disabled="!uiStore.selectedId" data-tooltip="Duplicate the selected item" @click="onDuplicate">Duplicate</button>
       <button class="sb-btn del" :disabled="!uiStore.selectedId" data-tooltip="Delete the selected item" @click="onDelete">Delete</button>
     </div>

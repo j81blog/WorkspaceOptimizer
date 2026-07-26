@@ -3,6 +3,26 @@ import type { TemplateDocument, ItemPayload } from './types'
 export function serializeXml(doc: TemplateDocument): string {
   const lines: string[] = ['<?xml version="1.0" encoding="utf-8"?>', '<Items>']
 
+  // Metadata, only when the source carried one. Descriptive fields are written only
+  // when set, so a file that never had them does not gain empty elements.
+  if (doc.metadata) {
+    const m = doc.metadata
+    lines.push('  <Metadata>')
+    lines.push(`    <Version>${esc(m.version)}</Version>`)
+    lines.push(`    <SchemaVersion>${esc(m.schemaVersion)}</SchemaVersion>`)
+    if (m.id) lines.push(`    <Id>${esc(m.id)}</Id>`)
+    if (m.name) lines.push(`    <Name>${esc(m.name)}</Name>`)
+    if (m.description) lines.push(`    <Description>${esc(m.description)}</Description>`)
+    if (m.author) lines.push(`    <Author>${esc(m.author)}</Author>`)
+    if (m.category) lines.push(`    <Category>${esc(m.category)}</Category>`)
+    if (m.tags.length) {
+      lines.push('    <Tags>')
+      for (const t of m.tags) lines.push(`      <Tag>${esc(t)}</Tag>`)
+      lines.push('    </Tags>')
+    }
+    lines.push('  </Metadata>')
+  }
+
   // SupportedOS
   lines.push('  <SupportedOS>')
   for (const os of doc.supportedOs) {
@@ -20,7 +40,7 @@ export function serializeXml(doc: TemplateDocument): string {
   }
   lines.push('  </SupportedOS>')
 
-  // Items — sorted by Order asc, then Name A-Z
+  // Items, sorted by Order asc, then Name A-Z
   const sorted = [...doc.items].sort((a, b) =>
     a.order - b.order || a.name.toLowerCase().localeCompare(b.name.toLowerCase())
   )
@@ -33,7 +53,7 @@ export function serializeXml(doc: TemplateDocument): string {
     lines.push(`    <Category>${esc(item.category)}</Category>`)
     lines.push(`    <Order>${Number.isFinite(item.order) ? item.order : 100}</Order>`)
 
-    // OS section — only emit supported entries
+    // OS section, only emit supported entries
     lines.push('    <OS>')
     for (const [tag, mapping] of Object.entries(item.os)) {
       lines.push(`      <${tag}>`)

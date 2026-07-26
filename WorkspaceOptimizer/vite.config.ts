@@ -23,8 +23,17 @@ export default defineConfig({
     __SCRIPT_VERSION__: JSON.stringify(readScriptVersion()),
     __XML_VERSION__: JSON.stringify(readXmlVersion()),
   },
+  // CHANGELOG.md lives at the repo root, one level above this app, and is imported
+  // with ?raw by the What's New dialog. Both the dev server and Vitest need to be
+  // told that reading outside the project root is intentional here.
+  server: {
+    fs: { allow: ['..'] }
+  },
   test: {
     environment: 'jsdom',
-    globals: true
+    globals: true,
+    server: {
+      deps: { fsAllow: ['..'] }
+    }
   }
 })

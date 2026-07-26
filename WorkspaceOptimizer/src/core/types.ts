@@ -16,8 +16,26 @@ export interface OsMapping {
   virtual: boolean
 }
 
+// ── Metadata (optional <Metadata> block) ──────────────────────────────────────
+/**
+ * Descriptive fields live in the file itself so a template or snippet is
+ * self-describing: a marketplace catalog can be generated from the files rather than
+ * restating everything by hand. All are optional; the deploy script ignores this block.
+ */
+export interface TemplateMetadata {
+  version: string         // build stamp, e.g. "2026.429.2230"
+  schemaVersion: string   // format version, e.g. "1"
+  id: string              // stable identifier, a GUID for generated files
+  name: string            // display name
+  description: string
+  author: string
+  category: string
+  tags: string[]
+}
+
 // ── Template Document (root) ──────────────────────────────────────────────────
 export interface TemplateDocument {
+  metadata: TemplateMetadata | null   // null when the file carries no <Metadata>
   supportedOs: OsDefinition[]
   items: TemplateItem[]
 }
@@ -99,6 +117,18 @@ export type ItemPayload =
   | PowerShellPayload
   | FileFolderPayload
   | UnknownPayload
+
+// ── Import / provenance ───────────────────────────────────────────────────────
+export type ImportSourceKind = 'marketplace' | 'reg'
+
+export interface ImportSource {
+  id: string              // 'mp:wo.telemetry.off' | 'reg:tweaks.reg#1'
+  kind: ImportSourceKind
+  label: string           // "Disable Telemetry" | "tweaks.reg"
+  origin: string          // "raw.githubusercontent.com"; empty for local files
+}
+
+export type MergeStatus = 'new' | 'duplicate' | 'conflict'
 
 // ── Validation ────────────────────────────────────────────────────────────────
 export type Severity = 'Error' | 'Warning'

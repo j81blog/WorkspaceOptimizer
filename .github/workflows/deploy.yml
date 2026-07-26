@@ -24,6 +24,13 @@ jobs:
           name: npm-logs
           path: /home/runner/.npm/_logs/
           if-no-files-found: ignore
+      # Fails when index.json no longer matches the XML files beside it, so a forgotten
+      # `npm run catalog:sync` is caught here rather than shipping a stale catalog.
+      - name: Check marketplace catalog is in sync
+        run: npm run catalog:check
+        working-directory: WorkspaceOptimizer
+      - run: npm run test
+        working-directory: WorkspaceOptimizer
       - run: npm run build
         working-directory: WorkspaceOptimizer
         env:
@@ -39,6 +46,22 @@ jobs:
           VITE_BRAND_DESCRIPTION: ${{ vars.VITE_BRAND_DESCRIPTION }}
           VITE_BRAND_LOGO_VALUE:  ${{ vars.VITE_BRAND_LOGO_VALUE }}
           VITE_BRAND_ACCENT:      ${{ vars.VITE_BRAND_ACCENT }}
+          # Source repository, linked from an empty Marketplace. Unset = the upstream
+          # project; set "none" to show no link at all.
+          VITE_BRAND_REPO_URL:    ${{ vars.VITE_BRAND_REPO_URL }}
+          # ── Marketplace (optional) ──────────────────────────────────────
+          # One or more catalog URLs, separated by a comma, semicolon or newline
+          # (not spaces). These are ADDED to the catalog bundled in public/; set
+          # VITE_MARKETPLACE_DISABLE_BUNDLED to use only your own. Hosts must send
+          # Access-Control-Allow-Origin (raw.githubusercontent.com does).
+          VITE_MARKETPLACE_URL:            ${{ vars.VITE_MARKETPLACE_URL }}
+          VITE_MARKETPLACE_DISABLE_BUNDLED: ${{ vars.VITE_MARKETPLACE_DISABLE_BUNDLED }}
+          # Hosts whose content may be imported without a confirmation prompt.
+          # Same-origin content is always trusted; this extends that to named hosts.
+          VITE_MARKETPLACE_TRUSTED_HOSTS:  ${{ vars.VITE_MARKETPLACE_TRUSTED_HOSTS }}
+          # Set either to "true" to drop that import route from the build entirely.
+          VITE_DISABLE_MARKETPLACE:        ${{ vars.VITE_DISABLE_MARKETPLACE }}
+          VITE_DISABLE_REG_IMPORT:         ${{ vars.VITE_DISABLE_REG_IMPORT }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: ./WorkspaceOptimizer/dist

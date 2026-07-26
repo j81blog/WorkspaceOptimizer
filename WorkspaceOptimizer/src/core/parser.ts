@@ -1,5 +1,5 @@
 import type {
-  TemplateDocument, OsDefinition, TemplateItem, OsMapping,
+  TemplateDocument, TemplateMetadata, OsDefinition, TemplateItem, OsMapping,
   ItemPayload, ItemType,
   RegistryPayload, ServicePayload, ScheduledTaskPayload,
   StoreAppPayload, PowerShellPayload, FileFolderPayload
@@ -9,9 +9,30 @@ export function parseXml(xmlString: string): TemplateDocument {
   const doc = new DOMParser().parseFromString(xmlString, 'application/xml')
   const err = doc.querySelector('parsererror')
   if (err) throw new Error('XML parse error: ' + (err.textContent ?? '').slice(0, 300))
+  const metadata = parseMetadata(doc)
   return {
+    metadata,
     supportedOs: parseSupportedOs(doc),
-    items: parseItems(doc)
+    items: parseItems(doc, metadata?.category)
+  }
+}
+
+function parseMetadata(doc: Document): TemplateMetadata | null {
+  const el = doc.querySelector('Items > Metadata')
+  // No block at all stays null, so serializing a file that never had one does not
+  // invent it. The Properties dialog fills one in on first use.
+  if (!el) return null
+  return {
+    version: text(el, 'Version'),
+    schemaVersion: text(el, 'SchemaVersion'),
+    id: text(el, 'Id'),
+    name: text(el, 'Name'),
+    description: text(el, 'Description'),
+    author: text(el, 'Author'),
+    category: text(el, 'Category'),
+    tags: Array.from(el.querySelectorAll('Tags > Tag'))
+      .map(t => t.textContent?.trim() ?? '')
+      .filter(Boolean)
   }
 }
 
@@ -27,7 +48,14 @@ function parseSupportedOs(doc: Document): OsDefinition[] {
   }))
 }
 
-function parseItems(doc: Document): TemplateItem[] {
+/** Category the validator requires when neither the item nor the file supplies one. */
+export const DEFAULT_CATEGORY = 'Imported'
+
+/**
+ * @param fallbackCategory the file's `<Metadata><Category>`, used for items that do not
+ *   name their own. Category is required by the validator, so it always ends up set.
+ */
+function parseItems(doc: Document, fallbackCategory = ''): TemplateItem[] {
   return Array.from(doc.querySelectorAll('Items > Item')).map(el => {
     const typeRaw = text(el, 'Type')
     const type = resolveType(typeRaw)
@@ -37,7 +65,8 @@ function parseItems(doc: Document): TemplateItem[] {
       description: text(el, 'Description'),
       type,
       typeRaw,
-      category: text(el, 'Category'),
+      // Item's own category, else the file's, else a placeholder.
+      category: text(el, 'Category') || fallbackCategory || DEFAULT_CATEGORY,
       order: parseOrder(text(el, 'Order')),
       os: parseOsMappings(el),
       payload: parsePayload(el, type)

@@ -2,6 +2,9 @@ import type { TemplateDocument, ValidationResult, ValidationIssue, RegistryPaylo
 
 const REG_ACTIONS = ['SetValue','DeleteKey','DeleteKeyRecursively','DeleteValue']
 const REG_TYPES   = ['String','ExpandString','Binary','DWord','MultiString','Qword']
+// Numeric/binary types need a value; the string types may legitimately be empty
+// (setting a registry value to "" is a valid operation).
+const REG_NEEDS_VALUE = ['dword','qword','binary']
 const SVC_ACTIONS = ['Disabled','Automatic','Manual']
 const ST_ACTIONS  = ['Enabled','Disabled']
 const FF_ACTIONS  = ['Rename','Remove']
@@ -16,6 +19,16 @@ export function validate(doc: TemplateDocument): ValidationResult {
     warnings.push({ severity: 'Warning', code, path, message, itemId })
 
   if (doc.items.length === 0) w('STRUCT_ITEM_REQUIRED', '/Items', 'No items in template')
+
+  // Template properties. These describe the file for a marketplace catalog, which
+  // cannot be generated without them, so they block the download like any other error.
+  // Id is auto-filled when the properties dialog opens, so it is only ever missing on a
+  // document that has never been through it.
+  for (const [field, label] of [['name', 'Name'], ['description', 'Description'], ['author', 'Author']] as const) {
+    if (!doc.metadata?.[field]?.trim()) {
+      e('META_REQUIRED', `/Metadata/${label}`, `Template ${label} is required. Set it in Template Properties`)
+    }
+  }
 
   const seenTags = new Set<string>()
   for (const os of doc.supportedOs) {
@@ -60,7 +73,8 @@ function validateRegistry(r: RegistryPayload, base: string, id: string, e: (c:st
   if (['SetValue','DeleteValue'].includes(r.action) && !r.name)
     e('FIELD_REQUIRED', `${base}/Registry/Name`, `Name required for ${r.action}`, id)
   if (r.action === 'SetValue') {
-    if (!r.value && r.value !== '0') e('FIELD_REQUIRED', `${base}/Registry/Value`, 'Value required for SetValue', id)
+    if (REG_NEEDS_VALUE.includes(r.registryType?.toLowerCase()) && !r.value && r.value !== '0')
+      e('FIELD_REQUIRED', `${base}/Registry/Value`, `Value required for ${r.registryType}`, id)
     if (!REG_TYPES.find(t => t.toLowerCase() === r.registryType?.toLowerCase()))
       e('ENUM_INVALID', `${base}/Registry/Type`, `Invalid registry type: "${r.registryType}"`, id)
     const v = r.value?.trim()

@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { validate } from '../core/validator'
-import type { TemplateDocument, TemplateItem, OsDefinition, ValidationResult } from '../core/types'
+import { provenanceStore } from './provenance'
+import type { TemplateDocument, TemplateItem, TemplateMetadata, OsDefinition, ValidationResult } from '../core/types'
 
 export const documentStore = reactive({
   document: null as TemplateDocument | null,
@@ -20,10 +21,53 @@ export const documentStore = reactive({
     this.document = doc
     this.dirty = false
     this.filename = filename
+    provenanceStore.clear()
+  },
+
+  /**
+   * Start an empty document, e.g. when importing with nothing loaded. It gets an Id
+   * immediately so the template is identifiable even if the user never opens the
+   * Properties dialog; the descriptive fields stay empty and are flagged by the
+   * validator until filled in.
+   */
+  newEmpty(supportedOs: OsDefinition[], filename: string) {
+    this.load({
+      metadata: {
+        version: '', schemaVersion: '1', id: crypto.randomUUID(),
+        name: '', description: '', author: '', category: '', tags: []
+      },
+      supportedOs,
+      items: []
+    }, filename)
   },
 
   addItem(item: TemplateItem) {
     this.document?.items.push(item)
+    this.dirty = true
+  },
+
+  /** Bulk add, one reactivity flush instead of one per item. */
+  addItems(items: TemplateItem[]) {
+    if (!this.document || items.length === 0) return
+    this.document.items.push(...items)
+    this.dirty = true
+  },
+
+  /** Replace the template's descriptive metadata (the Properties dialog). */
+  setMetadata(meta: TemplateMetadata) {
+    if (!this.document) return
+    this.document.metadata = meta
+    this.dirty = true
+  },
+
+  /**
+   * Append a single OS definition. Distinct from setOsDefinitions, which prunes
+   * unknown tags from every item and so cannot be used mid-import.
+   */
+  addOsDefinition(os: OsDefinition) {
+    if (!this.document) return
+    if (this.document.supportedOs.some(o => o.tag === os.tag)) return
+    this.document.supportedOs.push(os)
     this.dirty = true
   },
 
@@ -36,6 +80,7 @@ export const documentStore = reactive({
   deleteItem(id: string) {
     if (!this.document) return
     this.document.items = this.document.items.filter(i => i.id !== id)
+    provenanceStore.forget(id)
     this.dirty = true
   },
 

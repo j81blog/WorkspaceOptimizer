@@ -18,7 +18,7 @@
   <div v-else class="editor-layout">
     <!-- Breadcrumb -->
     <div class="bc-bar">
-      <span class="bc-cat">{{ item.category || '—' }}</span>
+      <span class="bc-cat">{{ item.category || '-' }}</span>
       <span class="bc-sep">›</span>
       <span class="bc-name">{{ item.name || '(unnamed)' }}</span>
       <span class="bc-badge" :style="{ color: accentColor, borderColor: accentColor, background: accentColor + '1f' }">{{ item.type }}</span>
@@ -76,7 +76,7 @@
                     <label class="field-lbl">Category *</label>
                     <div class="cat-row">
                       <select class="field-inp" :value="item.category" @change="update('category', ($event.target as HTMLSelectElement).value)">
-                        <option v-if="!item.category" value="" disabled>— select category —</option>
+                        <option v-if="!item.category" value="" disabled>-= select category =-</option>
                         <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
                       </select>
                       <button class="cat-add-btn" title="Add new category" @click="openCatDialog">+</button>

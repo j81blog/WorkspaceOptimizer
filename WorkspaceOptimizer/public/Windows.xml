@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Items>
   <Metadata>
-    <Version>2026.429.2230</Version>
+    <Version>2026.726.2145</Version>
     <SchemaVersion>1</SchemaVersion>
+    <Id>7aa42628-955f-4112-bcc7-837faa2fdd32</Id>
+    <Name>Default Template</Name>
+    <Description>The built-in Windows cleanup and optimization template.</Description>
+    <Author>John Billekens Consultancy</Author>
+    <Category>Baseline</Category>
+    <Tags>
+      <Tag>performance</Tag>
+      <Tag>optimization</Tag>
+    </Tags>
   </Metadata>
   <SupportedOS>
     <OS>
