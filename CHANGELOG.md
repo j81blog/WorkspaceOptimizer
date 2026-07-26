@@ -38,7 +38,7 @@ FIX: Metadata block is no longer dropped when downloading a template
 
 NEW: Options menu grouping every template action, with Add from… as a submenu
 NEW: New template starts an empty document, so you can build one from scratch
-NEW: What's New dialog in About
+NEW: What's New dialog in About, showing the newest release expanded and earlier ones collapsed
 CHANGE: Manage OS and PDF report moved from the toolbar into the Options menu
 CHANGE: Every dialog now shares one title bar, footer and Escape behavior
 FIX: Clicking a missing-Name, Description or Author error now opens Properties instead of doing nothing

@@ -5,6 +5,7 @@ import MergePreviewDialog from '../../src/components/MergePreviewDialog.vue'
 import WhatsNewDialog from '../../src/components/WhatsNewDialog.vue'
 import OptionsMenu from '../../src/components/OptionsMenu.vue'
 import { buildMergePlan } from '../../src/core/merge'
+import changelogRaw from '../../../CHANGELOG.md?raw'
 import type { TemplateItem, TemplateDocument } from '../../src/core/types'
 
 /**
@@ -15,6 +16,21 @@ import type { TemplateItem, TemplateDocument } from '../../src/core/types'
  * Dialogs teleport to body, so assertions read from document.body and each test
  * unmounts to keep the DOM clean.
  */
+
+/**
+ * Headings of one level, read from the changelog itself.
+ *
+ * Deliberately not hardcoded: the version heading is renamed at every release
+ * ("Unreleased" becomes a date), and asserting on its text made these tests fail on
+ * an ordinary changelog edit. What is worth pinning is that the parser splits '## '
+ * from '### ' correctly, which holds whatever the headings are called.
+ */
+function changelogHeadings(prefix: '## ' | '### '): string[] {
+  return changelogRaw.split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l.startsWith(prefix) && !l.slice(prefix.length).startsWith('#'))
+    .map(l => l.slice(prefix.length).trim())
+}
 
 function item(name: string, svc: string): TemplateItem {
   return {
@@ -253,7 +269,7 @@ it('still offers to add an OS the snippet did not define, flagged as incomplete'
 
 it('renders the changelog with tagged entries', () => {
   const w = mount(WhatsNewDialog, { props: { visible: true }, attachTo: document.body })
-  expect(document.body.textContent).toContain('Unreleased')
+  expect(document.querySelectorAll('.wn-version').length).toBeGreaterThan(0)
   expect(document.querySelectorAll('.wn-tag--new').length).toBeGreaterThan(0)
   expect(document.querySelectorAll('.wn-tag--fix').length).toBeGreaterThan(0)
   w.unmount()
@@ -264,12 +280,13 @@ it('styles changelog section headings instead of dropping them into body text', 
   const w = mount(WhatsNewDialog, { props: { visible: true }, attachTo: document.body })
 
   const sections = [...document.querySelectorAll('.wn-section')].map(e => e.textContent)
-  expect(sections.length).toBeGreaterThan(0)
-  expect(sections).toContain('Marketplace')
+  expect(sections).toEqual(changelogHeadings('### '))
 
-  const versions = [...document.querySelectorAll('.wn-version')].map(e => e.textContent)
-  expect(versions).toContain('Unreleased')
-  expect(versions).not.toContain('Marketplace')   // not mistaken for a version heading
+  // .wn-vname, not the whole button: that also carries the caret and the count badge.
+  const versions = [...document.querySelectorAll('.wn-vname')].map(e => e.textContent!.trim())
+  expect(versions).toEqual(changelogHeadings('## '))
+  // A section must never be promoted into a version heading.
+  for (const s of sections) expect(versions).not.toContain(s)
   w.unmount()
 })
 
@@ -444,16 +461,17 @@ it('AboutDialog leaves Escape to the nested What\'s New dialog', async () => {
   const AboutDialog = (await import('../../src/components/AboutDialog.vue')).default
   const w = mount(AboutDialog, { props: { visible: true }, attachTo: document.body })
 
-  // Open What's New from within About.
+  // Open What's New from within About. Presence of .wn-body is the signal the inner
+  // dialog is open; changelog text is not, since its wording is edited every release.
   ;(document.querySelector('.about-whatsnew') as HTMLButtonElement).click()
   await w.vm.$nextTick()
-  expect(document.body.textContent).toContain('Unreleased')
+  expect(document.querySelector('.wn-body')).not.toBeNull()
 
   // Escape must close only the inner dialog, leaving About open.
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
   await w.vm.$nextTick()
   expect(w.emitted('update:visible')).toBeFalsy()
-  expect(document.body.textContent).not.toContain('Unreleased')
+  expect(document.querySelector('.wn-body')).toBeNull()
 
   // A second Escape, now that only About is open, closes it.
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
