@@ -48,7 +48,7 @@ const FULL_XML = `<?xml version="1.0" encoding="utf-8"?>
   </Item>
 </Items>`
 
-describe('serializeXml — XML declaration and structure', () => {
+describe('serializeXml: XML declaration and structure', () => {
   it('starts with XML declaration', () => {
     const xml = serializeXml(parseXml(FULL_XML))
     expect(xml.startsWith('<?xml version="1.0" encoding="utf-8"?>')).toBe(true)
@@ -61,7 +61,7 @@ describe('serializeXml — XML declaration and structure', () => {
   })
 })
 
-describe('serializeXml — SupportedOS', () => {
+describe('serializeXml: SupportedOS', () => {
   it('writes Tag, Name, Abbreviation, ServerOS, BuildStartsWith', () => {
     const xml = serializeXml(parseXml(FULL_XML))
     expect(xml).toContain('<Tag>Windows11</Tag>')
@@ -72,7 +72,7 @@ describe('serializeXml — SupportedOS', () => {
   })
 })
 
-describe('serializeXml — OS mapping', () => {
+describe('serializeXml: OS mapping', () => {
   it('always writes Execute, Physical, Virtual when OS is supported', () => {
     const xml = serializeXml(parseXml(FULL_XML))
     expect(xml).toContain('<Execute>1</Execute>')
@@ -89,7 +89,7 @@ describe('serializeXml — OS mapping', () => {
   })
 })
 
-describe('serializeXml — item sort order', () => {
+describe('serializeXml: item sort order', () => {
   it('sorts by Order asc then Name A-Z', () => {
     const xml = serializeXml(parseXml(FULL_XML))
     const aIdx = xml.indexOf('<Name>A Item</Name>')
@@ -98,9 +98,10 @@ describe('serializeXml — item sort order', () => {
   })
 })
 
-describe('serializeXml — PowerShell CDATA', () => {
+describe('serializeXml: PowerShell CDATA', () => {
   it('wraps script in CDATA', () => {
     const doc: TemplateDocument = {
+      metadata: null,
       supportedOs: [],
       items: [{
         id: '1', name: 'PS', description: '', type: 'PowerShell', typeRaw: 'PowerShell',
@@ -113,9 +114,10 @@ describe('serializeXml — PowerShell CDATA', () => {
   })
 })
 
-describe('serializeXml — XML escaping', () => {
+describe('serializeXml: XML escaping', () => {
   it('escapes & < > in text values', () => {
     const doc: TemplateDocument = {
+      metadata: null,
       supportedOs: [],
       items: [{
         id: '1', name: 'A & B', description: '', type: 'Service', typeRaw: 'Service',
@@ -128,7 +130,7 @@ describe('serializeXml — XML escaping', () => {
   })
 })
 
-describe('serializeXml — round trip', () => {
+describe('serializeXml: round trip', () => {
   it('parse → serialize → parse produces equivalent document', () => {
     const original = parseXml(FULL_XML)
     const reparsed = parseXml(serializeXml(original))
@@ -137,5 +139,64 @@ describe('serializeXml — round trip', () => {
     expect(reparsed.items.find(i => i.name === 'B Item')!.os['Windows11']).toEqual(
       original.items.find(i => i.name === 'B Item')!.os['Windows11']
     )
+  })
+})
+
+describe('serializeXml: Metadata round-trip', () => {
+  const WITH_META = `<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Metadata>
+    <Version>2026.429.2230</Version>
+    <SchemaVersion>1</SchemaVersion>
+  </Metadata>
+  <SupportedOS></SupportedOS>
+</Items>`
+
+  it('preserves Metadata through parse -> serialize', () => {
+    const out = serializeXml(parseXml(WITH_META))
+    expect(out).toContain('<Version>2026.429.2230</Version>')
+    expect(out).toContain('<SchemaVersion>1</SchemaVersion>')
+    expect(parseXml(out).metadata).toMatchObject({ version: '2026.429.2230', schemaVersion: '1' })
+  })
+
+  it('round-trips the descriptive fields', () => {
+    const xml = `<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Metadata>
+    <Version>2026.429.2230</Version>
+    <SchemaVersion>1</SchemaVersion>
+    <Id>abc-123</Id>
+    <Name>My Snippet</Name>
+    <Description>Does a thing.</Description>
+    <Author>Someone</Author>
+    <Category>Privacy</Category>
+    <Tags><Tag>a</Tag><Tag>b</Tag></Tags>
+  </Metadata>
+  <SupportedOS></SupportedOS>
+</Items>`
+    const original = parseXml(xml)
+    expect(parseXml(serializeXml(original)).metadata).toEqual(original.metadata)
+  })
+
+  it('omits descriptive fields that are empty, rather than writing blank elements', () => {
+    const doc: TemplateDocument = {
+      metadata: { version: '1', schemaVersion: '1', id: '', name: '', description: '', author: '', category: '', tags: [] },
+      supportedOs: [], items: []
+    }
+    const out = serializeXml(doc)
+    expect(out).toContain('<Version>1</Version>')
+    for (const t of ['<Id>', '<Name>', '<Description>', '<Author>', '<Category>', '<Tags>']) {
+      expect(out).not.toContain(t)
+    }
+  })
+
+  it('emits Metadata before SupportedOS', () => {
+    const out = serializeXml(parseXml(WITH_META))
+    expect(out.indexOf('<Metadata>')).toBeLessThan(out.indexOf('<SupportedOS>'))
+  })
+
+  it('emits no Metadata block when the document has none', () => {
+    const doc: TemplateDocument = { metadata: null, supportedOs: [], items: [] }
+    expect(serializeXml(doc)).not.toContain('<Metadata>')
   })
 })

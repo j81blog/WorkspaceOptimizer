@@ -8,7 +8,7 @@
     <div v-if="expanded && issues.length" class="val-list">
       <div v-for="issue in issues" :key="issue.code + issue.path"
         class="val-issue" :class="issue.severity.toLowerCase()"
-        @click.stop="navigateToItem(issue.itemId)">
+        @click.stop="onIssueClick(issue)">
         <span class="vi-sev">{{ issue.severity === 'Error' ? '✕' : '⚠' }}</span>
         <span class="vi-msg">{{ issue.message }}</span>
         <span class="vi-path">{{ issue.path }}</span>
@@ -21,6 +21,9 @@
 import { ref, computed } from 'vue'
 import { documentStore } from '../store/document'
 import { uiStore } from '../store/ui'
+import type { ValidationIssue } from '../core/types'
+
+const emit = defineEmits<{ properties: [] }>()
 
 const expanded = ref(false)
 const result = computed(() => documentStore.validationResult)
@@ -33,8 +36,10 @@ const label = computed(() => {
   return [e && `${e} error${e !== 1 ? 's' : ''}`, w && `${w} warning${w !== 1 ? 's' : ''}`].filter(Boolean).join(', ')
 })
 
-function navigateToItem(itemId?: string) {
-  if (itemId) uiStore.select(itemId)
+/** Take the user to wherever the problem can actually be fixed. */
+function onIssueClick(issue: ValidationIssue) {
+  if (issue.code === 'META_REQUIRED') emit('properties')
+  else if (issue.itemId) uiStore.select(issue.itemId)
 }
 </script>
 

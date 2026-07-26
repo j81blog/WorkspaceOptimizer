@@ -8,7 +8,15 @@
       <span class="tb-brand-name">{{ brand.name }}</span>
     </div>
 
-    <!-- Action buttons -->
+    <!-- Everything here is also in Options, which is the single place a new user can
+         find every template action without scanning the toolbar. -->
+    <OptionsMenu
+      @new="emit('newblank')" @default="emit('new')" @open="emit('open')"
+      @marketplace="emit('marketplace')" @regfile="emit('regfile')"
+      @manageos="emit('manageos')" @pdf="emit('pdf')" />
+
+    <div class="tb-divider"></div>
+
     <button class="tb-btn" data-tooltip="Create a new template from built-in defaults" @click="emit('new')">
       New from Default
     </button>
@@ -36,17 +44,18 @@
 
     <div class="tb-divider"></div>
 
-    <button class="tb-btn" data-tooltip="Add, edit or remove supported operating systems" @click="emit('manageos')">
-      Manage OS
-    </button>
     <button
       class="tb-btn"
-      :class="{ 'tb-btn--disabled': !canPdf }"
-      data-tooltip="Generate a PDF summary report"
-      @click="canPdf && emit('pdf')"
+      :class="{ 'tb-btn--alert': missingMeta.length > 0 }"
+      :data-tooltip="missingMeta.length
+        ? `${missingMeta.join(', ')} ${missingMeta.length === 1 ? 'is' : 'are'} required before download`
+        : 'Edit the template name, description, author and tags'"
+      @click="emit('properties')"
     >
-      PDF Report
+      Properties
     </button>
+    <!-- Manage OS and PDF Report live in Options only: both are occasional actions, and
+         the toolbar was long enough to make the frequent ones hard to find. -->
 
     <!-- Spacer -->
     <div class="tb-spacer"></div>
@@ -77,10 +86,27 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { documentStore } from '../store/document'
 import { brand, onLogoError } from '../branding'
+import OptionsMenu from './OptionsMenu.vue'
 
 const emit = defineEmits<{
-  new: []; open: []; save: []; downloadscript: []; manageos: []; pdf: []; about: []
+  new: []; newblank: []; open: []; save: []; downloadscript: []; manageos: []; pdf: []
+  about: []; marketplace: []; regfile: []; properties: []
 }>()
+
+/**
+ * Required template properties that are still empty. Drives the alert styling, so the
+ * colour only appears when there is something to fix. Empty when no document is open.
+ */
+const missingMeta = computed(() => {
+  const doc = documentStore.document
+  if (!doc) return []
+  const m = doc.metadata
+  const out: string[] = []
+  if (!m?.name?.trim()) out.push('Name')
+  if (!m?.description?.trim()) out.push('Description')
+  if (!m?.author?.trim()) out.push('Author')
+  return out
+})
 
 const canDownloadXml = computed(() =>
   !!documentStore.document?.items.length &&
@@ -127,7 +153,7 @@ onUnmounted(() => mediaQuery.removeEventListener('change', onSystemChange))
   position: relative;
 }
 
-/* Brand block — fixed to the sidebar width so the action buttons line up with the editor pane.
+/* Brand block: fixed to the sidebar width so the action buttons line up with the editor pane.
    width = sidebar load/min width (320px) minus this toolbar's left padding (14px). */
 .tb-brand {
   width: calc(320px - 14px);
@@ -138,7 +164,7 @@ onUnmounted(() => mediaQuery.removeEventListener('change', onSystemChange))
   overflow: hidden;
 }
 
-/* Logo box — fixed height, width grows to the logo's natural aspect ratio */
+/* Logo box: fixed height, width grows to the logo's natural aspect ratio */
 .tb-logo-box {
   height: 40px;
   width: auto;
@@ -201,6 +227,17 @@ onUnmounted(() => mediaQuery.removeEventListener('change', onSystemChange))
 .tb-btn:hover {
   background: var(--sb-btn-hover-bg);
   border-color: var(--sb-btn-hover-bdr);
+}
+/* Only shown while a required property is missing, so the colour carries meaning. */
+.tb-btn--alert {
+  color: var(--btn-danger-txt);
+  border-color: var(--btn-danger-bdr);
+  background: var(--btn-danger-bg);
+  font-weight: 700;
+}
+.tb-btn--alert:hover {
+  background: var(--btn-danger-bg);
+  border-color: var(--btn-danger-txt);
 }
 .tb-btn--accent {
   background: var(--btn-primary-bg);

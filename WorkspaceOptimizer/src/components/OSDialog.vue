@@ -1,83 +1,77 @@
 <template>
-  <Teleport to="body">
-    <div v-if="visible" class="dialog-backdrop" @click.self="onCancel">
-      <div class="dialog">
-        <div class="dlg-header">
-          <span class="dlg-title">Manage Supported OS</span>
-          <button class="dlg-close" data-tooltip="Close without saving" @click="onCancel">×</button>
+  <BaseDialog :visible="visible" title="Manage Supported OS" width="780px" :scroll-body="false"
+    @update:visible="onVisibleChange">
+
+    <div class="os-body">
+      <!-- Left: OS list -->
+      <div class="dlg-list">
+        <div class="dlg-list-actions">
+          <button class="dlg-btn primary" data-tooltip="Add a new operating system" @click="onAddOs">Add OS</button>
+          <button class="dlg-btn danger" :disabled="!selectedTag" data-tooltip="Delete the selected operating system" @click="onDeleteOs">Delete OS</button>
         </div>
-
-        <div class="dlg-body">
-          <!-- Left: OS list -->
-          <div class="dlg-list">
-            <div class="dlg-list-actions">
-              <button class="dlg-btn primary" data-tooltip="Add a new operating system" @click="onAddOs">Add OS</button>
-              <button class="dlg-btn danger" :disabled="!selectedTag" data-tooltip="Delete the selected operating system" @click="onDeleteOs">Delete OS</button>
-            </div>
-            <div class="os-list-items">
-              <div v-for="os in draft" :key="os.tag"
-                class="os-list-item" :class="{ active: selectedTag === os.tag }"
-                @click="selectedTag = os.tag">
-                <div class="osli-name">{{ os.name }}</div>
-                <div class="osli-tag">{{ os.tag }}</div>
-              </div>
-            </div>
+        <div class="os-list-items">
+          <div v-for="os in draft" :key="os.tag"
+            class="os-list-item" :class="{ active: selectedTag === os.tag }"
+            @click="selectedTag = os.tag">
+            <div class="osli-name">{{ os.name }}</div>
+            <div class="osli-tag">{{ os.tag }}</div>
           </div>
-
-          <!-- Right: Detail form -->
-          <div class="dlg-detail" v-if="selected">
-            <p class="detail-heading">OS Details</p>
-
-            <div class="field dlg-field" data-tooltip="Unique identifier used in XML output and item OS mappings">
-              <label class="field-lbl">Tag *</label>
-              <input class="field-inp" :value="selected.tag" @input="updateSelected('tag', ($event.target as HTMLInputElement).value)" />
-            </div>
-            <div class="field dlg-field" data-tooltip="Display name shown in the OS list and PDF reports">
-              <label class="field-lbl">Name *</label>
-              <input class="field-inp" :value="selected.name" @input="updateSelected('name', ($event.target as HTMLInputElement).value)" />
-            </div>
-            <div class="field dlg-field" data-tooltip="Short label shown in the OS mapping table. Auto-derived from the name if left empty">
-              <label class="field-lbl">Abbreviation (auto-derived if empty)</label>
-              <input class="field-inp" :value="selected.abbreviation" @input="updateSelected('abbreviation', ($event.target as HTMLInputElement).value)" :placeholder="derivedAbbrev" />
-            </div>
-
-            <label class="server-os-label" data-tooltip="Mark this as a server edition operating system">
-              <input type="checkbox" :checked="selected.isServerOs" @change="updateSelected('isServerOs', ($event.target as HTMLInputElement).checked)" />
-              Server OS
-            </label>
-
-            <div class="build-section">
-              <div class="build-hdr">
-                <span class="build-title">Build</span>
-                <div>
-                  <button class="dlg-btn small" data-tooltip="Add a build number entry" @click="addBuild">Add</button>
-                  <button class="dlg-btn small danger" :disabled="selectedBuildIdx === null" data-tooltip="Remove the selected build entry" @click="removeBuild">Remove</button>
-                </div>
-              </div>
-              <div class="build-list">
-                <div class="build-col-hdr" data-tooltip="Windows build number, or the starting digits of the build number (e.g. 19041 or 220)">BuildStartsWith</div>
-                <div v-for="(b, i) in selected.buildStartsWith" :key="i"
-                  class="build-row" :class="{ active: selectedBuildIdx === i }"
-                  @click="selectedBuildIdx = i">
-                  <input class="build-inp" inputmode="numeric" data-tooltip="Windows build number, or the starting digits of the build number (e.g. 19041 or 220)" :value="b" @input="updateBuild(i, ($event.target as HTMLInputElement).value)" @click.stop />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else class="dlg-detail dlg-empty">Select an OS entry or add a new one.</div>
-        </div>
-
-        <div class="dlg-footer">
-          <button class="dlg-btn" data-tooltip="Discard changes and close" @click="onCancel">Cancel</button>
-          <button class="dlg-btn primary" data-tooltip="Save all operating system changes" @click="onSave">Save</button>
         </div>
       </div>
+
+      <!-- Right: Detail form -->
+      <div class="dlg-detail" v-if="selected">
+        <p class="detail-heading">OS Details</p>
+
+        <div class="field dlg-field" data-tooltip="Unique identifier used in XML output and item OS mappings">
+          <label class="field-lbl">Tag *</label>
+          <input class="field-inp" :value="selected.tag" @input="updateSelected('tag', ($event.target as HTMLInputElement).value)" />
+        </div>
+        <div class="field dlg-field" data-tooltip="Display name shown in the OS list and PDF reports">
+          <label class="field-lbl">Name *</label>
+          <input class="field-inp" :value="selected.name" @input="updateSelected('name', ($event.target as HTMLInputElement).value)" />
+        </div>
+        <div class="field dlg-field" data-tooltip="Short label shown in the OS mapping table. Auto-derived from the name if left empty">
+          <label class="field-lbl">Abbreviation (auto-derived if empty)</label>
+          <input class="field-inp" :value="selected.abbreviation" @input="updateSelected('abbreviation', ($event.target as HTMLInputElement).value)" :placeholder="derivedAbbrev" />
+        </div>
+
+        <label class="server-os-label" data-tooltip="Mark this as a server edition operating system">
+          <input type="checkbox" :checked="selected.isServerOs" @change="updateSelected('isServerOs', ($event.target as HTMLInputElement).checked)" />
+          Server OS
+        </label>
+
+        <div class="build-section">
+          <div class="build-hdr">
+            <span class="build-title">Build</span>
+            <div>
+              <button class="dlg-btn small" data-tooltip="Add a build number entry" @click="addBuild">Add</button>
+              <button class="dlg-btn small danger" :disabled="selectedBuildIdx === null" data-tooltip="Remove the selected build entry" @click="removeBuild">Remove</button>
+            </div>
+          </div>
+          <div class="build-list">
+            <div class="build-col-hdr" data-tooltip="Windows build number, or the starting digits of the build number (e.g. 19041 or 220)">BuildStartsWith</div>
+            <div v-for="(b, i) in selected.buildStartsWith" :key="i"
+              class="build-row" :class="{ active: selectedBuildIdx === i }"
+              @click="selectedBuildIdx = i">
+              <input class="build-inp" inputmode="numeric" data-tooltip="Windows build number, or the starting digits of the build number (e.g. 19041 or 220)" :value="b" @input="updateBuild(i, ($event.target as HTMLInputElement).value)" @click.stop />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else class="dlg-detail dlg-empty">Select an OS entry or add a new one.</div>
     </div>
-  </Teleport>
+
+    <template #footer>
+      <button class="dlg-btn" data-tooltip="Discard changes and close" @click="onCancel">Cancel</button>
+      <button class="dlg-btn primary" data-tooltip="Save all operating system changes" @click="onSave">Save</button>
+    </template>
+  </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import BaseDialog from './BaseDialog.vue'
 import { documentStore } from '../store/document'
 import type { OsDefinition } from '../core/types'
 
@@ -169,15 +163,16 @@ function onSave() {
 function onCancel() {
   emit('update:visible', false)
 }
+
+/** Backdrop click and Escape both route here, so they discard like Cancel. */
+function onVisibleChange(v: boolean) {
+  if (!v) onCancel()
+}
 </script>
 
 <style scoped>
-.dialog-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.dialog { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; width: 780px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-.dlg-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--card-border); position: relative; z-index: 0; }
-.dlg-title { font-size: 14px; font-weight: 700; color: var(--bc-name); }
-.dlg-close { background: none; border: none; color: var(--field-label); font-size: 20px; cursor: pointer; line-height: 1; }
-.dlg-body { display: flex; flex: 1; overflow: visible; min-height: 0; }
+/* Backdrop, header, footer and .dlg-btn come from BaseDialog and style.css. */
+.os-body { display: flex; flex: 1; overflow: visible; min-height: 0; }
 .dlg-list { width: 260px; flex-shrink: 0; border-right: 1px solid var(--card-border); display: flex; flex-direction: column; }
 .dlg-list-actions { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--card-border); }
 .os-list-items { flex: 1; overflow-y: auto; }
@@ -200,10 +195,4 @@ function onCancel() {
 .build-row { display: flex; border-bottom: 1px solid var(--sb-border); }
 .build-row.active { background: var(--item-active); }
 .build-inp { flex: 1; background: transparent; border: none; outline: none; padding: 7px 12px; font-size: 12px; font-family: 'Montserrat', sans-serif; color: var(--field-txt); }
-.dlg-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--card-border); }
-.dlg-btn { padding: 7px 18px; border-radius: 6px; border: 1px solid var(--sb-btn-bdr); background: var(--sb-btn-bg); color: var(--sb-btn-txt); font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer; }
-.dlg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.dlg-btn.primary { background: var(--btn-primary-bg); border-color: var(--btn-primary-bdr); color: var(--btn-primary-txt); }
-.dlg-btn.danger { background: var(--btn-danger-bg); border-color: var(--btn-danger-bdr); color: var(--btn-danger-txt); }
-.dlg-btn.small { padding: 4px 10px; font-size: 11px; }
 </style>

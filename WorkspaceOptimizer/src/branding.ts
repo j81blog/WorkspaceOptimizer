@@ -7,7 +7,7 @@
  * and Vite exposes any `VITE_`-prefixed var on `import.meta.env`.
  *
  * Logo resolution order:
- *   1. VITE_BRAND_LOGO_VALUE  (an http(s) URL, a full data: URI, OR raw base64 —
+ *   1. VITE_BRAND_LOGO_VALUE  (an http(s) URL, a full data: URI, OR raw base64;
  *                              raw base64 is wrapped into a data: URI with the
  *                              image type sniffed from its magic bytes)
  *   2. public/brand-logo.png  (convention file dropped in by the fork)
@@ -67,8 +67,8 @@ export function sniffImageMime(base64: string): string {
  *
  * Detection is base64-first: a value made up solely of base64 characters (after
  * whitespace removal) and long enough to be image data is treated as base64.
- * Everything else — including paths like `/logo.png`, which can otherwise look
- * base64-ish because `/` is a valid base64 character — is passed through as a URL.
+ * Everything else, including paths like `/logo.png`, which can otherwise look
+ * base64-ish because `/` is a valid base64 character, is passed through as a URL.
  */
 export function resolveLogoValue(raw: string | undefined): string | undefined {
   const v = str(raw)
@@ -85,6 +85,24 @@ export function resolveLogoValue(raw: string | undefined): string | undefined {
 }
 
 const logoValue = resolveLogoValue(env.VITE_BRAND_LOGO_VALUE)
+
+/** The upstream project, linked when a fork has not named its own repository. */
+const UPSTREAM_REPO_URL = 'https://github.com/j81blog/WorkspaceOptimizer'
+
+/**
+ * Resolve the source-repository link.
+ *
+ * Unset falls back to the upstream project. A fork points it at its own repo, or
+ * sets it to `none` to show no link. An unset variable and a deliberately empty one
+ * are indistinguishable in GitHub Actions, so "no link" needs an explicit value.
+ * Only http(s) URLs are accepted, so a typo cannot become a `javascript:` link.
+ */
+export function resolveRepoUrl(raw: string | undefined): string | undefined {
+  const v = str(raw)
+  if (!v) return UPSTREAM_REPO_URL
+  if (/^none$/i.test(v)) return undefined
+  return /^https?:\/\//i.test(v) ? v : undefined
+}
 
 /**
  * Whether a fork has customized branding at all. Used to decide if the
@@ -114,6 +132,13 @@ export const brand = {
   /** Fork's website link shown in About (label derived from the URL host). */
   url: str(env.VITE_BRAND_URL),
 
+  /**
+   * Source repository, linked from the empty Marketplace so someone who wants to
+   * contribute a snippet knows where to go. Defaults to the upstream project; a fork
+   * points it at its own repo, or sets it to "none" to show no link at all.
+   */
+  repoUrl: resolveRepoUrl(env.VITE_BRAND_REPO_URL),
+
   /** Fork's About description; falls back to the original product description. */
   description: str(env.VITE_BRAND_DESCRIPTION) ??
     'A tool for building and editing Windows cleanup & optimization templates.',
@@ -125,7 +150,7 @@ export const brand = {
 /**
  * Point the browser-tab favicon at the brand logo, so white-label forks get
  * their own favicon without touching index.html. If the brand logo fails to
- * load (e.g. a missing convention file), fall back to the bundled default —
+ * load (e.g. a missing convention file), fall back to the bundled default,
  * mirroring `onLogoError` for the on-page `<img>`.
  */
 export function applyFavicon() {

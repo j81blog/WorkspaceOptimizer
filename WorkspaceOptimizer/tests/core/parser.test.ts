@@ -44,7 +44,7 @@ const MINIMAL_XML = `<?xml version="1.0" encoding="utf-8"?>
   </Item>
 </Items>`
 
-describe('parseXml — SupportedOS', () => {
+describe('parseXml: SupportedOS', () => {
   it('parses OS count', () => {
     expect(parseXml(MINIMAL_XML).supportedOs).toHaveLength(2)
   })
@@ -66,7 +66,7 @@ describe('parseXml — SupportedOS', () => {
   })
 })
 
-describe('parseXml — Item general fields', () => {
+describe('parseXml: Item general fields', () => {
   it('parses name, description, category, order', () => {
     const item = parseXml(MINIMAL_XML).items[0]
     expect(item).toMatchObject({
@@ -95,7 +95,7 @@ describe('parseXml — Item general fields', () => {
   })
 })
 
-describe('parseXml — OS mapping', () => {
+describe('parseXml: OS mapping', () => {
   it('parses Execute, Physical, Virtual', () => {
     const mapping = parseXml(MINIMAL_XML).items[0].os['Windows11']
     expect(mapping).toEqual({ execute: true, physical: true, virtual: false })
@@ -115,14 +115,14 @@ describe('parseXml — OS mapping', () => {
   })
 })
 
-describe('parseXml — Service payload', () => {
+describe('parseXml: Service payload', () => {
   it('parses service fields', () => {
     const item = parseXml(MINIMAL_XML).items[0]
     expect(item.payload).toMatchObject({ type: 'Service', name: 'wuauserv', action: 'Disabled' })
   })
 })
 
-describe('parseXml — Registry payload', () => {
+describe('parseXml: Registry payload', () => {
   const XML = `<?xml version="1.0" encoding="utf-8"?>
 <Items>
   <SupportedOS></SupportedOS>
@@ -168,7 +168,7 @@ describe('parseXml — Registry payload', () => {
   })
 })
 
-describe('parseXml — PowerShell payload', () => {
+describe('parseXml: PowerShell payload', () => {
   const XML = `<?xml version="1.0" encoding="utf-8"?>
 <Items>
   <SupportedOS></SupportedOS>
@@ -192,8 +192,118 @@ describe('parseXml — PowerShell payload', () => {
   })
 })
 
-describe('parseXml — error handling', () => {
+describe('parseXml: error handling', () => {
   it('throws on malformed XML', () => {
     expect(() => parseXml('<invalid<xml')).toThrow()
+  })
+})
+
+describe('parseXml: Metadata', () => {
+  const WITH_META = `<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Metadata>
+    <Version>2026.429.2230</Version>
+    <SchemaVersion>1</SchemaVersion>
+  </Metadata>
+  <SupportedOS></SupportedOS>
+</Items>`
+
+  it('parses the Metadata block', () => {
+    expect(parseXml(WITH_META).metadata).toMatchObject({ version: '2026.429.2230', schemaVersion: '1' })
+  })
+
+  it('parses the descriptive fields that make a file self-describing', () => {
+    const xml = `<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Metadata>
+    <Version>2026.429.2230</Version>
+    <SchemaVersion>1</SchemaVersion>
+    <Id>7aa42628-955f-4112-bcc7-837faa2fdd32</Id>
+    <Name>Default Template</Name>
+    <Description>Built-in cleanup template.</Description>
+    <Author>John Billekens Consultancy</Author>
+    <Category>Baseline</Category>
+    <Tags><Tag>performance</Tag><Tag>optimization</Tag></Tags>
+  </Metadata>
+  <SupportedOS></SupportedOS>
+</Items>`
+    expect(parseXml(xml).metadata).toEqual({
+      version: '2026.429.2230',
+      schemaVersion: '1',
+      id: '7aa42628-955f-4112-bcc7-837faa2fdd32',
+      name: 'Default Template',
+      description: 'Built-in cleanup template.',
+      author: 'John Billekens Consultancy',
+      category: 'Baseline',
+      tags: ['performance', 'optimization']
+    })
+  })
+
+  it('defaults the descriptive fields when only a version is present', () => {
+    expect(parseXml(WITH_META).metadata).toEqual({
+      version: '2026.429.2230', schemaVersion: '1',
+      id: '', name: '', description: '', author: '', category: '', tags: []
+    })
+  })
+
+  it('does not confuse an OS <Tag> with a metadata tag', () => {
+    // SupportedOS entries use <Tag> too, so metadata tags are nested under <Tags>.
+    const xml = `<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Metadata><Version>1</Version><SchemaVersion>1</SchemaVersion></Metadata>
+  <SupportedOS><OS><Tag>Windows11</Tag><Name>Windows 11</Name><Abbreviation>W11</Abbreviation><ServerOS>0</ServerOS><Builds></Builds></OS></SupportedOS>
+</Items>`
+    const doc = parseXml(xml)
+    expect(doc.metadata!.tags).toEqual([])
+    expect(doc.metadata!.name).toBe('')          // not the OS's <Name>
+    expect(doc.supportedOs[0].tag).toBe('Windows11')
+  })
+
+  it('returns null when there is no Metadata block', () => {
+    const xml = `<?xml version="1.0" encoding="utf-8"?>\n<Items><SupportedOS></SupportedOS></Items>`
+    expect(parseXml(xml).metadata).toBeNull()
+  })
+
+  it('ignores a Metadata element nested inside an Item', () => {
+    const xml = `<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Item><Name>X</Name><Type>Service</Type><Metadata><Version>9</Version></Metadata></Item>
+</Items>`
+    expect(parseXml(xml).metadata).toBeNull()
+  })
+})
+
+describe('parseXml: item category fallback', () => {
+  const build = (metaCategory: string, itemCategory: string) => `<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Metadata>
+    <Version>1</Version><SchemaVersion>1</SchemaVersion>
+    ${metaCategory ? `<Category>${metaCategory}</Category>` : ''}
+  </Metadata>
+  <Item>
+    <Name>X</Name><Type>Service</Type>
+    ${itemCategory ? `<Category>${itemCategory}</Category>` : ''}
+    <Order>100</Order><OS></OS>
+    <Service><Name>svc</Name><Action>Disabled</Action></Service>
+  </Item>
+</Items>`
+
+  it('prefers the item\'s own category', () => {
+    expect(parseXml(build('Visual Effects', 'Privacy')).items[0].category).toBe('Privacy')
+  })
+
+  it('falls back to the file\'s metadata category', () => {
+    expect(parseXml(build('Visual Effects', '')).items[0].category).toBe('Visual Effects')
+  })
+
+  it('falls back to a placeholder when neither is present', () => {
+    // Category is required by the validator, so it can never be left empty.
+    expect(parseXml(build('', '')).items[0].category).toBe('Imported')
+  })
+
+  it('never leaves a category empty, so the document stays downloadable', () => {
+    for (const [meta, item] of [['A', 'B'], ['A', ''], ['', 'B'], ['', '']]) {
+      expect(parseXml(build(meta, item)).items[0].category).not.toBe('')
+    }
   })
 })
