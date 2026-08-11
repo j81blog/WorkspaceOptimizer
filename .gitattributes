@@ -1,0 +1,2 @@
+# Signed scripts must keep their exact bytes; autocrlf would strip the CR and break the signature.
+*.ps1 -text

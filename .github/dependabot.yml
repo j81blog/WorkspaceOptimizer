@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /WorkspaceOptimizer
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Majors are deliberately left out so a Vite or PrimeVue jump lands on its own PR.
+      npm-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        update-types: [minor, patch, major]

@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: WorkspaceOptimizer/.nvmrc
           cache: npm
           cache-dependency-path: WorkspaceOptimizer/package-lock.json
       - run: npm ci
@@ -51,3 +51,27 @@ jobs:
         run: npm run build
         env:
           VITE_BASE_URL: /
+
+  # ubuntu is the platform that builds the deployed artifact and does no autocrlf
+  # restoration, so the line-ending assertions only have teeth there. windows is the only
+  # place Get-AuthenticodeSignature exists, so the signature tests only run there.
+  powershell:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      # The runner image carries Pester 3.4 alongside 5.x and picks unpredictably.
+      - name: Install Pester
+        shell: pwsh
+        run: Install-Module Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck -Scope CurrentUser
+      - name: Validate the published PowerShell script
+        shell: pwsh
+        run: |
+          $config = New-PesterConfiguration
+          $config.Run.Path = 'WorkspaceOptimizer/tests/powershell'
+          $config.Run.Exit = $true
+          $config.Output.Verbosity = 'Detailed'
+          Invoke-Pester -Configuration $config
