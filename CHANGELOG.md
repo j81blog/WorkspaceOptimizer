@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here.
 
+## 11.08.2026
+
+### Interface
+
+FIX: Execute in the OS table is now disabled until Physical or Virtual is set, instead of accepting the tick and silently discarding it
+
+### Optimization script
+
+FIX: The downloaded Invoke-WindowsOptimization.ps1 kept the line endings it was signed with, so its signature verifies again instead of reporting NotSigned
+
+### Validation and tooling
+
+NEW: The signed script is checked on every pull request for its signature, line endings, encoding and comment-based help
+FIX: The marketplace catalog is generated identically on Windows and Linux, so a template description no longer changes index.json depending on who ran the sync
+
 ## 26.07.2026
 
 ### Marketplace

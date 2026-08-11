@@ -32,6 +32,21 @@ function changelogHeadings(prefix: '## ' | '### '): string[] {
     .map(l => l.slice(prefix.length).trim())
 }
 
+/**
+ * Section headings of the newest release only. The dialog opens with just that release
+ * expanded, so comparing against every '### ' in the file passes only while the
+ * changelog has a single release.
+ */
+function newestReleaseSections(): string[] {
+  const lines = changelogRaw.split(/\r?\n/).map(l => l.trim())
+  const start = lines.findIndex(l => l.startsWith('## '))
+  const rest = lines.slice(start + 1)
+  const end = rest.findIndex(l => l.startsWith('## '))
+  return (end === -1 ? rest : rest.slice(0, end))
+    .filter(l => l.startsWith('### '))
+    .map(l => l.slice(4).trim())
+}
+
 function item(name: string, svc: string): TemplateItem {
   return {
     id: crypto.randomUUID(), name, description: '', type: 'Service', typeRaw: 'Service',
@@ -280,7 +295,7 @@ it('styles changelog section headings instead of dropping them into body text', 
   const w = mount(WhatsNewDialog, { props: { visible: true }, attachTo: document.body })
 
   const sections = [...document.querySelectorAll('.wn-section')].map(e => e.textContent)
-  expect(sections).toEqual(changelogHeadings('### '))
+  expect(sections).toEqual(newestReleaseSections())
 
   // .wn-vname, not the whole button: that also carries the caret and the count badge.
   const versions = [...document.querySelectorAll('.wn-vname')].map(e => e.textContent!.trim())
