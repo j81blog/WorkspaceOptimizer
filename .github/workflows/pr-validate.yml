@@ -18,8 +18,8 @@ jobs:
       run:
         working-directory: WorkspaceOptimizer
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: WorkspaceOptimizer/.nvmrc
           cache: npm
@@ -62,7 +62,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # The runner image carries Pester 3.4 alongside 5.x and picks unpredictably.
       - name: Install Pester
         shell: pwsh
