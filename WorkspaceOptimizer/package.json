@@ -24,7 +24,7 @@
     "@primeuix/themes": "^2.0.3",
     "codemirror": "^6.0.2",
     "pdfmake": "^0.3.11",
-    "primeicons": "^7.0.0",
+    "primeicons": "^8.0.0",
     "primevue": "^4.5.5",
     "vue": "^3.5.41"
   },
