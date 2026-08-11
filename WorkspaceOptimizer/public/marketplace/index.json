@@ -1,14 +1,29 @@
 {
   "schemaVersion": 1,
   "name": "Workspace Optimizer Catalog",
-  "updated": "2026-07-26",
+  "updated": "2026-08-11",
   "entries": [
+    {
+      "id": "f6d7f464-e2f3-4783-806e-209e5006684c",
+      "kind": "snippet",
+      "name": "Default User Optimizations",
+      "url": "snippet/DefaultUserOptimizations.xml",
+      "description": "Default user profile settings as described in\nhttps://learn.microsoft.com/en-us/windows-server/remote/remote-desktop-services/remote-desktop-services-vdi-optimize-configuration\nNOTE: This only has effect on new user profiles!",
+      "version": "2026.730.2117",
+      "author": "John Billekens Consultancy",
+      "category": "Default User Optimizations",
+      "tags": [
+        "telemetry",
+        "performance"
+      ],
+      "itemCount": 31
+    },
     {
       "id": "f0d453d3-bd0d-4c7f-b79c-6001c0c89fd0",
       "kind": "snippet",
       "name": "Visual Optimizations",
       "url": "snippet/VisualEffects.xml",
-      "description": "Optimizes performance by disabling many of the Windows visual effects, such as animations and shadows.\nIMPORTANT: These settings will only be in-effect for new user profiles. Not excising user profiles.",
+      "description": "Optimizes performance by disabling many of the Windows visual effects, such as animations and shadows.\nIMPORTANT: These settings will only be in-effect for new user profiles. Not existing user profiles.",
       "version": "2026.726.2102",
       "author": "John Billekens Consultancy",
       "category": "Visual Effects",
