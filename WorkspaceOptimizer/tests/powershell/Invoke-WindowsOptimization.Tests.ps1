@@ -38,6 +38,17 @@ Describe 'Invoke-WindowsOptimization.ps1' {
                 $script:ScriptPath, [ref]$null, [ref]$null)
             $ast.GetHelpContent().Description | Should -Not -BeNullOrEmpty
         }
+
+        It 'stamps the same version in .NOTES and in $script:ScriptVersion' {
+            # vite reads $script:ScriptVersion for the About dialog, so the two drifting
+            # apart publishes a version the script itself does not report.
+            $notes = [regex]::Match($script:Text, 'Version\s*:\s*(\d[\d.]*)').Groups[1].Value
+            $variable = [regex]::Match($script:Text, '\$script:ScriptVersion\s*=\s*''([^'']+)''').Groups[1].Value
+
+            $notes | Should -Not -BeNullOrEmpty
+            $variable | Should -Not -BeNullOrEmpty
+            $notes | Should -Be $variable
+        }
     }
 
     Context 'Encoding and line endings' {
