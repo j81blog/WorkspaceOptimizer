@@ -16,7 +16,7 @@
           <input type="checkbox" :checked="isSupported(os.tag)" @change="toggleSupported(os.tag, ($event.target as HTMLInputElement).checked)" />
           <span>{{ os.name }}</span>
         </label>
-        <input type="checkbox" class="os-chk" :disabled="!isSupported(os.tag)" :checked="get(os.tag, 'execute')" @change="setField(os.tag, 'execute', ($event.target as HTMLInputElement).checked)" />
+        <input type="checkbox" class="os-chk" :disabled="!canExecute(os.tag)" :checked="get(os.tag, 'execute')" @change="setField(os.tag, 'execute', ($event.target as HTMLInputElement).checked)" />
         <input type="checkbox" class="os-chk" :disabled="!isSupported(os.tag)" :checked="get(os.tag, 'physical')" @change="setField(os.tag, 'physical', ($event.target as HTMLInputElement).checked)" />
         <input type="checkbox" class="os-chk" :disabled="!isSupported(os.tag)" :checked="get(os.tag, 'virtual')" @change="setField(os.tag, 'virtual', ($event.target as HTMLInputElement).checked)" />
       </div>
@@ -39,7 +39,7 @@
           <input type="checkbox" :checked="isSupported(os.tag)" @change="toggleSupported(os.tag, ($event.target as HTMLInputElement).checked)" />
           <span>{{ os.name }}</span>
         </label>
-        <input type="checkbox" class="os-chk" :disabled="!isSupported(os.tag)" :checked="get(os.tag, 'execute')" @change="setField(os.tag, 'execute', ($event.target as HTMLInputElement).checked)" />
+        <input type="checkbox" class="os-chk" :disabled="!canExecute(os.tag)" :checked="get(os.tag, 'execute')" @change="setField(os.tag, 'execute', ($event.target as HTMLInputElement).checked)" />
         <input type="checkbox" class="os-chk" :disabled="!isSupported(os.tag)" :checked="get(os.tag, 'physical')" @change="setField(os.tag, 'physical', ($event.target as HTMLInputElement).checked)" />
         <input type="checkbox" class="os-chk" :disabled="!isSupported(os.tag)" :checked="get(os.tag, 'virtual')" @change="setField(os.tag, 'virtual', ($event.target as HTMLInputElement).checked)" />
       </div>
@@ -65,6 +65,16 @@ function isSupported(tag: string): boolean {
 
 function get(tag: string, field: keyof OsMapping): boolean {
   return props.item.os[tag]?.[field] ?? false
+}
+
+/**
+ * Execute is only meaningful on an OS that runs somewhere, so the box stays disabled
+ * until physical or virtual is set. Without this the enforcement below silently
+ * discarded the tick, and the checkbox kept rendering as checked because its bound
+ * value had not changed.
+ */
+function canExecute(tag: string): boolean {
+  return isSupported(tag) && (get(tag, 'physical') || get(tag, 'virtual'))
 }
 
 function toggleSupported(tag: string, checked: boolean) {
