@@ -5527,6 +5527,9 @@ Write-Host "Done"]]></Script>
     'C:\Windows\Logs\DISM\*'
     'C:\Windows\Panther\*'
     'C:\Users\Public\Desktop\*'
+    "$env:ProgramData\Microsoft\Windows\WER\Temp\*"
+    "$env:ProgramData\Microsoft\Windows\WER\ReportArchive\*"
+    "$env:ProgramData\Microsoft\Windows\WER\ReportQueue\*"
 )
 
 foreach ($path in $paths) {
@@ -5537,7 +5540,12 @@ foreach ($path in $paths) {
     } else {
         Write-Host " - Not found, skipping"
     }
-}]]></Script>
+}
+
+Clear-RecycleBin -Force -ErrorAction SilentlyContinue
+
+Clear-BCCache -Force -ErrorAction SilentlyContinue
+]]></Script>
     </PowerShell>
   </Item>
   <Item>

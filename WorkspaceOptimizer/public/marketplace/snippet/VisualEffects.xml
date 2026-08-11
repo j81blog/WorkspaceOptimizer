@@ -6,7 +6,7 @@
     <Id>f0d453d3-bd0d-4c7f-b79c-6001c0c89fd0</Id>
     <Name>Visual Optimizations</Name>
     <Description>Optimizes performance by disabling many of the Windows visual effects, such as animations and shadows.
-IMPORTANT: These settings will only be in-effect for new user profiles. Not excising user profiles.</Description>
+IMPORTANT: These settings will only be in-effect for new user profiles. Not existing user profiles.</Description>
     <Author>John Billekens Consultancy</Author>
     <Category>Visual Effects</Category>
     <Tags>

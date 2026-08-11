@@ -39,7 +39,9 @@ function tags(xml) {
 export function readXmlFile(absPath) {
   let xml
   try {
-    xml = readFileSync(absPath, 'utf-8')
+    // Normalized so a multi-line <Description> yields the same index.json on Windows as
+    // it does on the Linux runner, which compares them in catalog:check.
+    xml = readFileSync(absPath, 'utf-8').replace(/\r\n/g, '\n')
   } catch (err) {
     return { ok: false, error: `cannot be read (${err.message})` }
   }
