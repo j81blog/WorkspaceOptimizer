@@ -25,7 +25,7 @@
     "codemirror": "^6.0.2",
     "pdfmake": "^0.3.11",
     "primeicons": "^8.0.0",
-    "primevue": "^4.5.5",
+    "primevue": "^5.0.0",
     "vue": "^3.5.41"
   },
   "devDependencies": {
