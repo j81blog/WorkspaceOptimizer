@@ -18,6 +18,13 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@primeuix/themes"
         update-types: ["version-update:semver-major"]
+      # Temporary, unlike the two above. vue-tsc resolves 'typescript/lib/tsc', which
+      # TypeScript 7 no longer exports, and its peer range of >=5.0.0 lets npm install
+      # the combination anyway so it only fails at runtime. Lift this once
+      #   grep typescript/lib/tsc node_modules/vue-tsc/index.js
+      # comes back empty.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
