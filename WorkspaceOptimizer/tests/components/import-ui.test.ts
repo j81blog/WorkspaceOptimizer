@@ -33,18 +33,27 @@ function changelogHeadings(prefix: '## ' | '### '): string[] {
 }
 
 /**
- * Section headings of the newest release only. The dialog opens with just that release
- * expanded, so comparing against every '### ' in the file passes only while the
- * changelog has a single release.
+ * The newest release only. The dialog opens with just that one expanded, so anything
+ * derived from the whole file passes only while the changelog has a single release.
  */
-function newestReleaseSections(): string[] {
+function newestReleaseLines(): string[] {
   const lines = changelogRaw.split(/\r?\n/).map(l => l.trim())
   const start = lines.findIndex(l => l.startsWith('## '))
   const rest = lines.slice(start + 1)
   const end = rest.findIndex(l => l.startsWith('## '))
-  return (end === -1 ? rest : rest.slice(0, end))
-    .filter(l => l.startsWith('### '))
-    .map(l => l.slice(4).trim())
+  return end === -1 ? rest : rest.slice(0, end)
+}
+
+function newestReleaseSections(): string[] {
+  return newestReleaseLines().filter(l => l.startsWith('### ')).map(l => l.slice(4).trim())
+}
+
+/** Entry prefixes the newest release happens to use, e.g. ['CHANGE'] or ['NEW', 'FIX']. */
+function newestReleaseTags(): string[] {
+  const tags = newestReleaseLines()
+    .map(l => l.match(/^(NEW|FIX|CHANGE):/)?.[1])
+    .filter((t): t is string => Boolean(t))
+  return [...new Set(tags)]
 }
 
 function item(name: string, svc: string): TemplateItem {
@@ -285,8 +294,12 @@ it('still offers to add an OS the snippet did not define, flagged as incomplete'
 it('renders the changelog with tagged entries', () => {
   const w = mount(WhatsNewDialog, { props: { visible: true }, attachTo: document.body })
   expect(document.querySelectorAll('.wn-version').length).toBeGreaterThan(0)
-  expect(document.querySelectorAll('.wn-tag--new').length).toBeGreaterThan(0)
-  expect(document.querySelectorAll('.wn-tag--fix').length).toBeGreaterThan(0)
+
+  const tags = newestReleaseTags()
+  expect(tags.length).toBeGreaterThan(0)
+  for (const tag of tags) {
+    expect(document.querySelectorAll(`.wn-tag--${tag.toLowerCase()}`).length).toBeGreaterThan(0)
+  }
   w.unmount()
 })
 

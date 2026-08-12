@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 12.08.2026
+
+### Validation and tooling
+
+CHANGE: Dropped the unused PrimeIcons dependency, removing about 646 kB of font files from the build
+CHANGE: PrimeVue stays on 4.x, which is MIT licensed, so the project and its forks remain GPL-3 with no license key required
+
 ## 11.08.2026
 
 ### Interface
