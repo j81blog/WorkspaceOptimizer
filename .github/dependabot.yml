@@ -9,6 +9,15 @@ updates:
       # Majors are deliberately left out so a Vite or PrimeVue jump lands on its own PR.
       npm-minor-patch:
         update-types: [minor, patch]
+    ignore:
+      # PrimeTek relicensed the PrimeUI family from MIT to a commercial license at the
+      # next major (primevue 5, primeicons 8, @primeuix/themes 3). Those terms forbid
+      # redistribution and removing the license notice, which GPL-3 section 7 does not
+      # permit this project to accept. Revisit only as a deliberate decision.
+      - dependency-name: primevue
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@primeuix/themes"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
