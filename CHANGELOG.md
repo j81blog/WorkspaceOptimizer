@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## 26.08.2026
+
+### Marketplace
+
+NEW: Enable long path support snippet, lifting the 260 character path limit on Windows 10, Windows 11 and Server 2019 through 2025
+NEW: Decrease menu show delay in Default User Optimizations, which drops the menu delay from 400 to 200 milliseconds for new profiles
+
+### Validation and tooling
+
+CHANGE: The Vite config reads its own directory through import.meta.dirname, so the build keeps working once Vite loads configs natively
+CHANGE: Dependabot no longer proposes TypeScript majors, because vue-tsc does not support them yet
+
 ## 12.08.2026
 
 ### Validation and tooling

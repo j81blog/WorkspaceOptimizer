@@ -1365,4 +1365,46 @@ NOTE: This only has effect on new user profiles!</Description>
       <Type>DWord</Type>
     </Registry>
   </Item>
+  <Item>
+    <Name>Decrease menu show delay</Name>
+    <Description>Decreases the delay before menus are shown. Default is 400 milliseconds.</Description>
+    <Type>Registry</Type>
+    <Category>Visual Effects</Category>
+    <Order>100</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+      <Windows10>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows10>
+      <Server2025>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Server2025>
+      <Server2022>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Server2022>
+      <Server2019>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Server2019>
+    </OS>
+    <Registry>
+      <Hive>HKU\DefaultUser</Hive>
+      <Name>MenuShowDelay</Name>
+      <Path>Control Panel\Desktop</Path>
+      <Action>SetValue</Action>
+      <Value>200</Value>
+      <Type>DWord</Type>
+    </Registry>
+  </Item>
 </Items>

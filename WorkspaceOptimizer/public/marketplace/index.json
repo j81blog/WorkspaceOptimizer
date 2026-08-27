@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "Workspace Optimizer Catalog",
-  "updated": "2026-08-11",
+  "updated": "2026-08-26",
   "entries": [
     {
       "id": "f6d7f464-e2f3-4783-806e-209e5006684c",
@@ -16,7 +16,21 @@
         "telemetry",
         "performance"
       ],
-      "itemCount": 31
+      "itemCount": 32
+    },
+    {
+      "id": "71cd07f1-b97c-4716-9ebc-8d21acb51be1",
+      "kind": "snippet",
+      "name": "Enable long path support",
+      "url": "snippet/EnableLongPathSupport.xml",
+      "description": "Enable the long path (260+ character limit) support",
+      "version": "2026.826.2215",
+      "author": "John Billekens Consultancy",
+      "category": "Windows Explorer",
+      "tags": [
+        "Configuration"
+      ],
+      "itemCount": 1
     },
     {
       "id": "f0d453d3-bd0d-4c7f-b79c-6001c0c89fd0",

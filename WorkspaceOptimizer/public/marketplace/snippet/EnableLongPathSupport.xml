@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Metadata>
+    <Version>2026.826.2215</Version>
+    <SchemaVersion>1</SchemaVersion>
+    <Id>71cd07f1-b97c-4716-9ebc-8d21acb51be1</Id>
+    <Name>Enable long path support</Name>
+    <Description>Enable the long path (260+ character limit) support</Description>
+    <Author>John Billekens Consultancy</Author>
+    <Category>Windows Explorer</Category>
+    <Tags>
+      <Tag>Configuration</Tag>
+    </Tags>
+  </Metadata>
+  <SupportedOS>
+    <OS>
+      <Tag>Windows11</Tag>
+      <Name>Windows 11</Name>
+      <Abbreviation>W11</Abbreviation>
+      <ServerOS>0</ServerOS>
+      <Builds>
+        <BuildStartsWith>21</BuildStartsWith>
+        <BuildStartsWith>26</BuildStartsWith>
+      </Builds>
+    </OS>
+    <OS>
+      <Tag>Windows10</Tag>
+      <Name>Windows 10</Name>
+      <Abbreviation>W10</Abbreviation>
+      <ServerOS>0</ServerOS>
+      <Builds>
+        <BuildStartsWith>190</BuildStartsWith>
+      </Builds>
+    </OS>
+    <OS>
+      <Tag>Server2025</Tag>
+      <Name>Windows Server 2025</Name>
+      <Abbreviation>WS2025</Abbreviation>
+      <ServerOS>1</ServerOS>
+      <Builds>
+        <BuildStartsWith>26100</BuildStartsWith>
+      </Builds>
+    </OS>
+    <OS>
+      <Tag>Server2022</Tag>
+      <Name>Windows Server 2022</Name>
+      <Abbreviation>WS2022</Abbreviation>
+      <ServerOS>1</ServerOS>
+      <Builds>
+        <BuildStartsWith>20348</BuildStartsWith>
+      </Builds>
+    </OS>
+    <OS>
+      <Tag>Server2019</Tag>
+      <Name>Windows Server 2019</Name>
+      <Abbreviation>WS2019</Abbreviation>
+      <ServerOS>1</ServerOS>
+      <Builds>
+        <BuildStartsWith>17763</BuildStartsWith>
+      </Builds>
+    </OS>
+  </SupportedOS>
+  <Item>
+    <Name>Enable long path support</Name>
+    <Description>Enable the long path (260+ character limit) support</Description>
+    <Type>Registry</Type>
+    <Category>Windows Explorer</Category>
+    <Order>100</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+      <Windows10>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Windows10>
+      <Server2025>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Server2025>
+      <Server2022>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Server2022>
+      <Server2019>
+        <Execute>1</Execute>
+        <Physical>1</Physical>
+        <Virtual>1</Virtual>
+      </Server2019>
+    </OS>
+    <Registry>
+      <Hive>HKLM</Hive>
+      <Name>LongPathsEnabled</Name>
+      <Path>SYSTEM\CurrentControlSet\Control\FileSystem</Path>
+      <Action>SetValue</Action>
+      <Value>1</Value>
+      <Type>DWord</Type>
+    </Registry>
+  </Item>
+</Items>
