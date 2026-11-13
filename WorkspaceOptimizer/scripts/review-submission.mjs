@@ -107,6 +107,7 @@ for (const file of files) {
     continue
   }
 
+  console.log(`  sha256: ${meta.sha256}`)
   console.log(`  ${meta.name || "(no name)"}: ${meta.itemCount} items, by ${meta.author || '(no author)'}`)
   if (meta.description) console.log(`  ${meta.description}`)
 

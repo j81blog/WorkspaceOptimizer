@@ -47,6 +47,11 @@
 
       <div class="om-sep"></div>
 
+      <!-- The toolbar button stays disabled while there are errors; this is the deliberate way around it. -->
+      <button class="om-item" :disabled="!documentStore.hasErrors" @click="pick('draft')">
+        Download draft…
+        <span class="om-sub">Save the XML even though it has validation errors</span>
+      </button>
       <button class="om-item" :disabled="!hasDocument" @click="pick('manageos')">
         Manage OS
         <span class="om-sub">Add, edit or remove OS definitions</span>
@@ -65,12 +70,12 @@ import { hideTooltip } from '../tooltip'
 import { documentStore } from '../store/document'
 import { marketplaceDisabled, regImportDisabled } from '../core/marketplace'
 
-type Action = 'new' | 'default' | 'open' | 'marketplace' | 'regfile' | 'manageos' | 'pdf'
+type Action = 'new' | 'default' | 'open' | 'marketplace' | 'regfile' | 'manageos' | 'pdf' | 'draft'
 
 const emit = defineEmits<{
   new: []; default: []; open: []
   marketplace: []; regfile: []
-  manageos: []; pdf: []
+  manageos: []; pdf: []; draft: []
 }>()
 
 const root = ref<HTMLElement | null>(null)
@@ -98,6 +103,7 @@ function close() {
 function pick(what: Action) {
   if (what === 'manageos' && !hasDocument.value) return
   if (what === 'pdf' && !canPdf.value) return
+  if (what === 'draft' && !documentStore.hasErrors) return
   close()
   switch (what) {
     case 'new': emit('new'); break
@@ -107,6 +113,7 @@ function pick(what: Action) {
     case 'regfile': emit('regfile'); break
     case 'manageos': emit('manageos'); break
     case 'pdf': emit('pdf'); break
+    case 'draft': emit('draft'); break
   }
 }
 

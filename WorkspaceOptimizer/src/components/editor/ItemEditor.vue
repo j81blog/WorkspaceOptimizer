@@ -67,6 +67,7 @@
                   <div class="field">
                     <label class="field-lbl">Type *</label>
                     <select class="field-inp" :value="item.type" @change="onTypeChange(($event.target as HTMLSelectElement).value as ItemType)">
+                      <option v-if="item.type === 'Unknown'" value="Unknown">{{ item.typeRaw || 'Unknown' }}</option>
                       <option v-for="t in ITEM_TYPES" :key="t" :value="t">{{ t }}</option>
                     </select>
                   </div>
@@ -144,6 +145,7 @@ const payloadComponents: Record<string, ReturnType<typeof defineAsyncComponent>>
   StoreApp: defineAsyncComponent(() => import('./payload/PayloadStoreApp.vue')),
   PowerShell: defineAsyncComponent(() => import('./payload/PayloadPowerShell.vue')),
   FileFolder: defineAsyncComponent(() => import('./payload/PayloadFileFolder.vue')),
+  Unknown: defineAsyncComponent(() => import('./payload/PayloadUnknown.vue')),
 }
 
 const payloadComponent = computed(() => payloadComponents[item.value?.type ?? ''] ?? null)
@@ -162,7 +164,7 @@ function onTypeChange(newType: ItemType) {
     StoreApp: { type: 'StoreApp', name: '' },
     PowerShell: { type: 'PowerShell', engine: 'powershell', script: '' },
     FileFolder: { type: 'FileFolder', path: '', action: 'Remove', itemType: 'File', newName: '' },
-    Unknown: { type: 'Unknown' }
+    Unknown: { type: 'Unknown', rawXml: '' }
   }
   documentStore.updateItem(item.value.id, { type: newType, typeRaw: newType, payload: defaultPayloads[newType] })
 }

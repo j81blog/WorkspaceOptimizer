@@ -21,6 +21,8 @@ export interface MarketplaceEntry {
   tags: string[]
   itemCount: number | null
   url: string             // as written in the index; resolve with resolveEntryUrl
+  /** Lowercase hex SHA-256 of the file (see hashText). Without it the entry is never trusted. */
+  sha256?: string
 
   /** Index this entry came from. Set when merging, so entries stay distinguishable. */
   catalogUrl: string
@@ -54,7 +56,7 @@ export interface MergedCatalog {
   updated: string
 }
 
-export type MarketplaceErrorKind = 'network' | 'http' | 'parse' | 'too-large' | 'not-found'
+export type MarketplaceErrorKind = 'network' | 'http' | 'parse' | 'too-large' | 'not-found' | 'checksum'
 
 export class MarketplaceError extends Error {
   constructor(message: string, public kind: MarketplaceErrorKind, public status?: number) {
@@ -272,7 +274,8 @@ export function normalizeIndex(raw: unknown, catalogUrl = ''): MarketplaceIndex 
       author: str(e.author),
       category: str(e.category),
       tags: Array.isArray(e.tags) ? e.tags.map(str).filter(Boolean) : [],
-      itemCount: typeof e.itemCount === 'number' ? e.itemCount : null
+      itemCount: typeof e.itemCount === 'number' ? e.itemCount : null,
+      sha256: /^[0-9a-f]{64}$/i.test(str(e.sha256)) ? str(e.sha256).toLowerCase() : undefined
     })
   }
 
@@ -293,7 +296,7 @@ function networkError(url: string): MarketplaceError {
   )
 }
 
-async function fetchText(url: string, signal?: AbortSignal): Promise<string> {
+async function fetchTextAt(url: string, signal?: AbortSignal): Promise<{ text: string; finalUrl: string }> {
   let res: Response
   try {
     res = await fetch(url, { cache: 'no-cache', redirect: 'follow', signal })
@@ -321,7 +324,22 @@ async function fetchText(url: string, signal?: AbortSignal): Promise<string> {
       'not-found'
     )
   }
-  return text
+  return { text, finalUrl: res.url || url }
+}
+
+async function fetchText(url: string, signal?: AbortSignal): Promise<string> {
+  return (await fetchTextAt(url, signal)).text
+}
+
+/**
+ * SHA-256 of a file's text as lowercase hex. A leading BOM is dropped and CRLF becomes
+ * LF first, so the same file hashes identically whether it was checked out on Windows
+ * or Linux. scripts/catalog-lib.mjs must normalize the same way.
+ */
+export async function hashText(text: string): Promise<string> {
+  const normalized = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n')
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized))
+  return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 /** Index cache, cleared only by a page reload or an explicit refresh. */
@@ -408,5 +426,31 @@ export async function fetchCatalogs(signal?: AbortSignal, refresh = false): Prom
 
 /** Fetch one entry's XML, resolved against the catalog the entry came from. */
 export async function fetchEntryXml(entry: MarketplaceEntry, signal?: AbortSignal): Promise<string> {
-  return fetchText(resolveEntryUrl(entry.url, entry.catalogUrl || marketplaceUrl), signal)
+  return (await fetchEntry(entry, signal)).xml
+}
+
+/**
+ * Fetch one entry and decide whether it may skip the confirmation prompt.
+ *
+ * `trusted` needs all three: a known-good checksum in the catalog, a trusted
+ * starting URL, and a trusted final URL. The last matters because fetch follows
+ * redirects, so a trusted host can hand the request to any other host.
+ */
+export async function fetchEntry(
+  entry: MarketplaceEntry,
+  signal?: AbortSignal
+): Promise<{ xml: string; trusted: boolean }> {
+  const url = resolveEntryUrl(entry.url, entry.catalogUrl || marketplaceUrl)
+  const { text, finalUrl } = await fetchTextAt(url, signal)
+
+  if (entry.sha256 && (await hashText(text)) !== entry.sha256) {
+    throw new MarketplaceError(
+      "This file does not match the catalog's checksum. It may have changed since it was reviewed.",
+      'checksum'
+    )
+  }
+
+  const origin = location.origin
+  const trusted = !!entry.sha256 && isTrustedSource(url, origin) && isTrustedSource(finalUrl, origin)
+  return { xml: text, trusted }
 }

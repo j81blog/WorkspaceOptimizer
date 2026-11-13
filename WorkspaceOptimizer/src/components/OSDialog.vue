@@ -14,7 +14,7 @@
             class="os-list-item" :class="{ active: selectedTag === os.tag }"
             @click="selectedTag = os.tag">
             <div class="osli-name">{{ os.name }}</div>
-            <div class="osli-tag">{{ os.tag }}</div>
+            <div class="osli-tag" :class="{ 'osli-tag--bad': !isValidOsTag(os.tag) }">{{ os.tag }}</div>
           </div>
         </div>
       </div>
@@ -26,6 +26,9 @@
         <div class="field dlg-field" data-tooltip="Unique identifier used in XML output and item OS mappings">
           <label class="field-lbl">Tag *</label>
           <input class="field-inp" :value="selected.tag" @input="updateSelected('tag', ($event.target as HTMLInputElement).value)" />
+        </div>
+        <div v-if="!isValidOsTag(selected.tag)" class="tag-error">
+          The tag becomes an XML element name: start with a letter or underscore, then use only letters, digits, underscore, dot or hyphen (no spaces).
         </div>
         <div class="field dlg-field" data-tooltip="Display name shown in the OS list and PDF reports">
           <label class="field-lbl">Name *</label>
@@ -64,7 +67,8 @@
 
     <template #footer>
       <button class="dlg-btn" data-tooltip="Discard changes and close" @click="onCancel">Cancel</button>
-      <button class="dlg-btn primary" data-tooltip="Save all operating system changes" @click="onSave">Save</button>
+      <button class="dlg-btn primary" :disabled="hasInvalidTag"
+        :data-tooltip="hasInvalidTag ? 'Fix the invalid OS tag first' : 'Save all operating system changes'" @click="onSave">Save</button>
     </template>
   </BaseDialog>
 </template>
@@ -73,6 +77,7 @@
 import { ref, computed, watch } from 'vue'
 import BaseDialog from './BaseDialog.vue'
 import { documentStore } from '../store/document'
+import { isValidOsTag } from '../core/validator'
 import type { OsDefinition } from '../core/types'
 
 const props = defineProps<{ visible: boolean }>()
@@ -89,6 +94,8 @@ watch(() => props.visible, (v) => {
     selectedTag.value = draft.value[0]?.tag ?? null
   }
 })
+
+const hasInvalidTag = computed(() => draft.value.some(o => !isValidOsTag(o.tag)))
 
 const selected = computed(() => draft.value.find(o => o.tag === selectedTag.value) ?? null)
 
@@ -150,6 +157,7 @@ function deriveAbbrev(name: string): string {
 }
 
 function onSave() {
+  if (hasInvalidTag.value) return
   // Derive abbreviations where empty, computed per-item
   const finalList = draft.value.map(os => ({
     ...os,
@@ -181,6 +189,8 @@ function onVisibleChange(v: boolean) {
 .os-list-item.active { background: var(--item-active); border-left: 2px solid var(--item-bar); }
 .osli-name { font-size: 12px; font-weight: 600; color: var(--item-name); }
 .osli-tag { font-size: 10px; color: var(--field-label); margin-top: 2px; }
+.osli-tag--bad { color: #f87171; }
+.tag-error { font-size: 11px; color: #f87171; line-height: 1.4; }
 .dlg-detail { flex: 1; padding: 16px 20px; overflow: visible; display: flex; flex-direction: column; gap: 10px; }
 .dlg-empty { align-items: center; justify-content: center; color: var(--field-label); font-size: 12px; }
 .detail-heading { font-size: 13px; font-weight: 700; color: var(--bc-name); margin-bottom: 4px; }

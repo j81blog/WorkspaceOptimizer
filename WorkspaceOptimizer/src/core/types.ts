@@ -107,6 +107,7 @@ export interface FileFolderPayload {
 
 export interface UnknownPayload {
   type: 'Unknown'
+  rawXml: string          // payload elements this editor does not understand, written back as-is
 }
 
 export type ItemPayload =

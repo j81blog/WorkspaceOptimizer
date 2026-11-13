@@ -4,7 +4,24 @@ const REG_ACTIONS = ['SetValue','DeleteKey','DeleteKeyRecursively','DeleteValue'
 const REG_TYPES   = ['String','ExpandString','Binary','DWord','MultiString','Qword']
 // Numeric/binary types need a value; the string types may legitimately be empty
 // (setting a registry value to "" is a valid operation).
-const REG_NEEDS_VALUE = ['dword','qword','binary']
+const REG_NEEDS_VALUE = ['dword','qword']
+const REG_HIVES   = ['HKLM','HKCU','HKU','HKU\\DefaultUser']
+const PS_ENGINES  = ['powershell','pwsh']
+const DWORD_MAX = 0xFFFFFFFFn
+const QWORD_MAX = 0xFFFFFFFFFFFFFFFFn
+// Valid in XML 1.0: tab, LF and CR are fine, the rest of the C0 controls are not.
+const XML_INVALID_CHAR = /[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]/
+/** OS tags become element names in the saved file. */
+const XML_NAME = /^[A-Za-z_][A-Za-z0-9_.-]*$/
+
+export function isValidOsTag(tag: string): boolean {
+  return XML_NAME.test(tag)
+}
+
+function charName(s: string): string {
+  const m = XML_INVALID_CHAR.exec(s)
+  return m ? 'U+' + m[0].charCodeAt(0).toString(16).toUpperCase().padStart(4, '0') : ''
+}
 const SVC_ACTIONS = ['Disabled','Automatic','Manual']
 const ST_ACTIONS  = ['Enabled','Disabled']
 const FF_ACTIONS  = ['Rename','Remove']
@@ -33,10 +50,24 @@ export function validate(doc: TemplateDocument): ValidationResult {
   const seenTags = new Set<string>()
   for (const os of doc.supportedOs) {
     if (!os.tag) { e('OS_TAG_REQUIRED', '/SupportedOS', 'OS entry has empty Tag'); continue }
+    if (!isValidOsTag(os.tag))
+      e('OS_TAG_INVALID', `/SupportedOS/${os.tag}`, `OS tag "${os.tag}" must start with a letter or underscore and use only letters, digits, underscore, dot or hyphen`)
     const tagLow = os.tag.toLowerCase()
     if (seenTags.has(tagLow)) e('OS_TAG_DUPLICATE', `/SupportedOS/${os.tag}`, `Duplicate OS tag: ${os.tag}`)
     seenTags.add(tagLow)
     if (os.buildStartsWith.length === 0) w('OS_BUILD_EMPTY', `/SupportedOS/${os.tag}`, `OS "${os.tag}" has no build prefixes`)
+  }
+
+  const badChar = (label: string, value: string | undefined, path: string, itemId?: string) => {
+    const c = value ? charName(value) : ''
+    if (c) e('XML_INVALID_CHAR', path, `${label} contains ${c}, which is not allowed in XML`, itemId)
+  }
+  for (const field of ['name', 'description', 'author', 'category'] as const)
+    badChar(`Template ${field}`, doc.metadata?.[field], `/Metadata/${field}`)
+  for (const os of doc.supportedOs) {
+    badChar(`OS "${os.tag}" tag`, os.tag, `/SupportedOS/${os.tag}`)
+    badChar(`OS "${os.tag}" name`, os.name, `/SupportedOS/${os.tag}/Name`)
+    badChar(`OS "${os.tag}" abbreviation`, os.abbreviation, `/SupportedOS/${os.tag}/Abbreviation`)
   }
 
   const knownTags = new Set(doc.supportedOs.filter(o => o.tag).map(o => o.tag.toLowerCase()))
@@ -55,12 +86,26 @@ export function validate(doc: TemplateDocument): ValidationResult {
     }
 
     const p = item.payload
+    const label = `Item "${item.name || '(unnamed)'}"`
+    badChar(`${label} name`, item.name, `${base}/Name`, id)
+    badChar(`${label} description`, item.description, `${base}/Description`, id)
+    badChar(`${label} category`, item.category, `${base}/Category`, id)
+    if (p.type !== 'Unknown') {
+      for (const [field, value] of Object.entries(p)) {
+        if (field !== 'type' && typeof value === 'string')
+          badChar(`${label} ${field}`, value, `${base}/${p.type}/${field}`, id)
+      }
+    }
     switch (p.type) {
       case 'Registry':      validateRegistry(p, base, id, e); break
       case 'Service':       validateService(p, base, id, e); break
       case 'ScheduledTask': validateScheduledTask(p, base, id, e); break
       case 'StoreApp':      if (!p.name) e('FIELD_REQUIRED', `${base}/StoreApp/Name`, 'Name is required', id); break
-      case 'PowerShell':    if (!p.script) e('FIELD_REQUIRED', `${base}/PowerShell/Script`, 'Script is required', id); break
+      case 'PowerShell':
+        if (!p.script.trim()) e('FIELD_REQUIRED', `${base}/PowerShell/Script`, 'Script is required', id)
+        if (!PS_ENGINES.includes(p.engine?.trim().toLowerCase()))
+          e('ENUM_INVALID', `${base}/PowerShell/Engine`, `Invalid engine: "${p.engine}"`, id)
+        break
       case 'FileFolder':    validateFileFolder(p, base, id, e); break
     }
   }
@@ -70,18 +115,21 @@ export function validate(doc: TemplateDocument): ValidationResult {
 function validateRegistry(r: RegistryPayload, base: string, id: string, e: (c:string,p:string,m:string,id?:string)=>void) {
   if (!r.path) e('FIELD_REQUIRED', `${base}/Registry/Path`, 'Path is required', id)
   if (!REG_ACTIONS.includes(r.action)) e('ENUM_INVALID', `${base}/Registry/Action`, `Invalid action: "${r.action}"`, id)
-  if (['SetValue','DeleteValue'].includes(r.action) && !r.name)
-    e('FIELD_REQUIRED', `${base}/Registry/Name`, `Name required for ${r.action}`, id)
+  if (!REG_HIVES.includes(r.hive)) e('ENUM_INVALID', `${base}/Registry/Hive`, `Invalid hive: "${r.hive}"`, id)
   if (r.action === 'SetValue') {
     if (REG_NEEDS_VALUE.includes(r.registryType?.toLowerCase()) && !r.value && r.value !== '0')
       e('FIELD_REQUIRED', `${base}/Registry/Value`, `Value required for ${r.registryType}`, id)
     if (!REG_TYPES.find(t => t.toLowerCase() === r.registryType?.toLowerCase()))
       e('ENUM_INVALID', `${base}/Registry/Type`, `Invalid registry type: "${r.registryType}"`, id)
     const v = r.value?.trim()
-    if (r.registryType?.toLowerCase() === 'dword' && v && !/^(0x[0-9a-fA-F]+|\d+)$/.test(v))
-      e('FIELD_FORMAT', `${base}/Registry/Value`, 'DWord must be decimal or 0x hex', id)
-    if (r.registryType?.toLowerCase() === 'qword' && v && !/^(0x[0-9a-fA-F]+|\d+)$/.test(v))
-      e('FIELD_FORMAT', `${base}/Registry/Value`, 'Qword must be decimal or 0x hex', id)
+    for (const [type, max] of [['dword', DWORD_MAX], ['qword', QWORD_MAX]] as const) {
+      if (r.registryType?.toLowerCase() !== type || !v) continue
+      const label = type === 'dword' ? 'DWord' : 'Qword'
+      if (!/^(0x[0-9a-fA-F]+|\d+)$/.test(v))
+        e('FIELD_FORMAT', `${base}/Registry/Value`, `${label} must be decimal or 0x hex`, id)
+      else if (BigInt(v) > max)
+        e('FIELD_RANGE', `${base}/Registry/Value`, `${label} must be between 0 and ${'0x' + max.toString(16).toUpperCase()}`, id)
+    }
     if (r.registryType?.toLowerCase() === 'binary' && v && !/^([0-9a-fA-F]{2}[\s,])*[0-9a-fA-F]{2}$/.test(v))
       e('FIELD_FORMAT', `${base}/Registry/Value`, 'Binary must be hex byte pairs', id)
   }

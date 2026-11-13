@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "Workspace Optimizer Catalog",
-  "updated": "2026-08-11",
+  "updated": "2026-11-13",
   "entries": [
     {
       "id": "f6d7f464-e2f3-4783-806e-209e5006684c",
@@ -16,7 +16,8 @@
         "telemetry",
         "performance"
       ],
-      "itemCount": 31
+      "itemCount": 31,
+      "sha256": "54f250c4fb673cc7f6d7ea62894352ad77a855d47fd0beea4d1b60ac92b8eeb4"
     },
     {
       "id": "f0d453d3-bd0d-4c7f-b79c-6001c0c89fd0",
@@ -31,7 +32,8 @@
         "Performance",
         "Graphics"
       ],
-      "itemCount": 17
+      "itemCount": 17,
+      "sha256": "9c75d60d63ab2ab01802277f68f490b1a860cb1ba0a8cc59cbc19f345a45be58"
     },
     {
       "id": "7aa42628-955f-4112-bcc7-837faa2fdd32",
@@ -39,14 +41,15 @@
       "name": "Default Template",
       "url": "../Windows.xml",
       "description": "The built-in Windows cleanup and optimization template.",
-      "version": "2026.811.2200",
+      "version": "2026.1113.1200",
       "author": "John Billekens Consultancy",
       "category": "Baseline",
       "tags": [
         "performance",
         "optimization"
       ],
-      "itemCount": 221
+      "itemCount": 222,
+      "sha256": "e814c7ff4be4ed05dabdddb69ff5bcbcf168bc97e9cefc126a992cff8eada750"
     }
   ]
 }

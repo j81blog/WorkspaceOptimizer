@@ -166,6 +166,16 @@ describe('parseXml: Registry payload', () => {
     const item = parseXml(xml).items[0]
     expect((item.payload as any).action).toBe('DeleteKey')
   })
+
+  it.each([
+    ['hklm', 'HKLM'],
+    ['Hkcu', 'HKCU'],
+    ['hku', 'HKU'],
+    ['hku\\defaultuser', 'HKU\\DefaultUser'],
+  ])('normalizes hive %s to %s', (raw, expected) => {
+    const item = parseXml(XML.replace('<Hive>HKLM</Hive>', `<Hive>${raw}</Hive>`)).items[0]
+    expect((item.payload as any).hive).toBe(expected)
+  })
 })
 
 describe('parseXml: PowerShell payload', () => {

@@ -121,7 +121,7 @@ import { ref, computed, watch } from 'vue'
 import BaseDialog from './BaseDialog.vue'
 import { brand } from '../branding'
 import {
-  fetchCatalogs, fetchEntryXml, resolveEntryUrl, isSameOrigin, isTrustedSource, originLabel,
+  fetchCatalogs, fetchEntry, resolveEntryUrl, isSameOrigin, isTrustedSource, originLabel,
   marketplaceUrls, usingBundledCatalog, noCatalogsConfigured, MarketplaceError,
   type MergedCatalog, type MarketplaceEntry
 } from '../core/marketplace'
@@ -175,7 +175,9 @@ const resolvedUrl = computed(() =>
   selected.value ? resolveEntryUrl(selected.value.url, selected.value.catalogUrl) : ''
 )
 const sameOrigin = computed(() => !resolvedUrl.value || isSameOrigin(resolvedUrl.value, location.origin))
-const trusted = computed(() => !resolvedUrl.value || isTrustedSource(resolvedUrl.value, location.origin))
+const trusted = computed(() =>
+  !resolvedUrl.value || (!!selected.value?.sha256 && isTrustedSource(resolvedUrl.value, location.origin))
+)
 const originHost = computed(() => originLabel(resolvedUrl.value))
 
 // `immediate` so the catalog also loads when the dialog is mounted already-open,
@@ -208,11 +210,11 @@ async function onUse() {
   busy.value = true
   entryError.value = ''
   try {
-    const xml = await fetchEntryXml(entry)
-    // `trusted` covers same-origin and whitelisted hosts alike; the preview uses it
-    // to decide whether an acknowledgement is required.
-    if (entry.kind === 'template') emit('template', xml, entry, resolvedUrl.value, trusted.value)
-    else emit('snippet', xml, entry, resolvedUrl.value, trusted.value)
+    // The post-fetch result decides whether an acknowledgement is required, since it
+    // also accounts for the checksum and any redirect.
+    const { xml, trusted: fetchedTrusted } = await fetchEntry(entry)
+    if (entry.kind === 'template') emit('template', xml, entry, resolvedUrl.value, fetchedTrusted)
+    else emit('snippet', xml, entry, resolvedUrl.value, fetchedTrusted)
   } catch (err) {
     entryError.value = err instanceof MarketplaceError
       ? err.message

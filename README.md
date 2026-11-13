@@ -87,13 +87,18 @@ sit on the right.
 | **Add from… → Import .reg file** | Run the [`.reg` import wizard](#importing-reg-files) |
 | **Manage OS** | Add, edit, or remove OS definitions |
 | **PDF report** | Export a formatted PDF overview of all items |
+| **Download draft…** | Save the XML even though it has validation errors, after a confirmation. Only enabled while there are errors |
 
-**Manage OS** and **PDF report** are in this menu only. **Add from…** disappears when both
+**Manage OS**, **PDF report** and **Download draft…** are in this menu only. **Add from…** disappears when both
 import routes are disabled for the build, and the entries that need an open document are
 greyed out until there is one.
 
 The right side of the toolbar shows the current filename and a yellow **Modified**
 indicator when there are unsaved changes.
+
+**Autosave.** While there are unsaved changes, the app keeps a draft in your browser's
+local storage. If you close the tab or the browser crashes, the next visit offers to
+restore it. Downloading the XML clears the draft. The draft never leaves your browser.
 
 ### Sidebar
 
@@ -116,6 +121,11 @@ Editing area for the selected item, split into two columns:
 
 Changes are applied immediately; the Modified indicator appears in the toolbar.
 
+An item whose type this version of the editor does not know (for example from a newer
+template) is shown read-only and saved unchanged. When you open a file that contains XML
+comments or elements the editor has no field for, a notice lists what will be dropped on
+save.
+
 ---
 
 ## Item types and their fields
@@ -128,7 +138,7 @@ Reads or writes a Windows registry value.
 | ------------- | ------------------------------------------------------------------- |
 | Hive          | `HKLM`, `HKCU`, `HKU`, or `HKU\DefaultUser`                         |
 | Path          | Registry key path (without the hive)                                |
-| Name          | Value name; leave empty for the default value                       |
+| Name          | Value name; leave empty for the key's (Default) value               |
 | Action        | `SetValue`, `DeleteKey`, `DeleteKeyRecursively`, `DeleteValue`      |
 | Value         | Data to write (for SetValue)                                        |
 | Registry Type | `String`, `ExpandString`, `Binary`, `DWord`, `MultiString`, `Qword` |
@@ -213,7 +223,7 @@ Each OS definition has:
 
 | Field           | Description                                                                         |
 | --------------- | ----------------------------------------------------------------------------------- |
-| Tag             | Unique XML element name used internally (e.g. `Windows11`)                          |
+| Tag             | Unique XML element name used internally (e.g. `Windows11`). Letters, digits, `_`, `.` and `-`, not starting with a digit |
 | Name            | Display name (e.g. `Windows 11`)                                                    |
 | Abbreviation    | Short label shown in the OS mapping table; auto-derived from the name if left empty |
 | Server OS       | Whether this is a Windows Server edition                                            |
@@ -221,20 +231,27 @@ Each OS definition has:
 
 Deleting an OS that is referenced by items will show a confirmation prompt.
 
+Prefer full build numbers (`22631`, `26100`) over short prefixes. A short prefix such as
+`26` also matches future Insider builds, and a wrong one silently matches nothing: the
+script then applies no items at all and exits with code 3.
+
 ---
 
 ## Validation
 
-The toolbar's **Download XML** action is disabled when the document has errors. A validation bar at the bottom of the editor shows all current errors and warnings with their location.
+The toolbar's **Download XML** action is disabled when the document has errors. To save work in progress anyway, use **Options → Download draft…**. A validation bar at the bottom of the editor shows all current errors and warnings with their location.
 
 Common validation rules:
 
 - The template's Name, Description and Author are required (see [Template Properties](#template-properties))
 - Name and type are required on every item
-- Registry items must have a hive and path
+- Registry items must have a path and one of the hives `HKLM`, `HKCU`, `HKU` or `HKU\DefaultUser` (any case is accepted and normalized when the file is opened)
+- DWord values must be between 0 and 4294967295, Qword values between 0 and 18446744073709551615
 - ScheduledTask items must have a name and path
-- PowerShell items must have a non-empty script
+- PowerShell items must have a non-empty script and the engine `powershell` or `pwsh`
 - FileFolder Rename action requires a new name
+- OS tags must be valid XML element names
+- No field may contain control characters that XML does not allow
 - OS mapping: Execute cannot be true if both Physical and Virtual are false
 
 ---
@@ -249,6 +266,41 @@ Options:
 - **Sort By**: order items by their numeric `Order` field or alphabetically by name
 
 The PDF is generated entirely in the browser and downloaded automatically.
+
+---
+
+## Running the script
+
+**Download Script** saves `Invoke-WindowsOptimization.ps1`. Put it next to your template
+(named `Windows.xml`, or pass `-FilePath`) and run it from an elevated, 64-bit PowerShell
+session:
+
+```powershell
+.\Invoke-WindowsOptimization.ps1                       # apply Windows.xml next to the script
+.\Invoke-WindowsOptimization.ps1 -WhatIf               # list what would run, change nothing
+.\Invoke-WindowsOptimization.ps1 -FilePath .\Contoso.xml -SkipWarning
+```
+
+The script detects the OS build and whether the machine is physical or virtual, then runs
+every item whose OS mapping matches. If it cannot tell physical from virtual, it stops
+without changing anything. A 32-bit PowerShell host on a 64-bit OS is refused, because its
+registry and file system views are redirected.
+
+**Store apps** are removed for all users and also from the provisioned image, so they do
+not come back for new profiles.
+
+**Log.** A tab-separated log is written to `%ProgramData%\WorkspaceOptimizer\Logs` by
+default (change it with `-LogPath`). For registry changes it records the previous value,
+which tells you what to restore.
+
+**Exit codes**, for task sequences and pipelines:
+
+| Code | Meaning |
+| --- | --- |
+| `0` | All items succeeded or were skipped |
+| `1` | Fatal: XML missing, platform unknown, not elevated, or 32-bit host |
+| `2` | One or more items failed, or the Default User hive could not be unloaded |
+| `3` | No OS in the template matched this machine, so nothing was applied |
 
 ---
 
@@ -410,9 +462,14 @@ VITE_MARKETPLACE_TRUSTED_HOSTS=raw.githubusercontent.com, cdn.contoso.example
 ```
 
 Content from a listed host imports without the external-content confirmation, the same as
-content served from the app's own origin. Everything else still requires an explicit
+content served from the app's own origin, provided its catalog entry carries a matching
+`sha256` (see [Trust](#trust)). Everything else still requires an explicit
 acknowledgement. Only add hosts you control or genuinely trust: a trusted catalog can
 import items that change registry values, disable services and delete files.
+
+> **A trusted host means everything on that host.** Trusting `raw.githubusercontent.com`
+> trusts every repository on GitHub, not just yours. The `sha256` in each entry is what
+> pins the exact file you reviewed, so always publish it.
 
 #### Build-time validation
 
@@ -471,15 +528,28 @@ index itself.
       "author": "Contoso IT",
       "category": "Privacy",
       "tags": ["privacy", "telemetry"],
-      "itemCount": 7
+      "itemCount": 7,
+      "sha256": "8204f955da3959fa520a2684689b4c7482457ccba0ca37a3c9ad2128a283cc27"
     }
   ]
 }
 ```
 
-Only `id`, `kind`, `name` and `url` are required; everything else is display metadata.
-Entries missing a required field, or using an unrecognized `kind`, are skipped rather than
-breaking the catalog.
+Only `id`, `kind`, `name` and `url` are required; everything else is display metadata,
+except `sha256`. Entries missing a required field, or using an unrecognized `kind`, are
+skipped rather than breaking the catalog.
+
+`sha256` is the lowercase SHA-256 of the file after removing a leading BOM and converting
+CRLF to LF, so the hash is the same however the file was checked out. `npm run
+catalog:sync` writes it for you. To compute it by hand in PowerShell:
+
+```powershell
+$text = [IO.File]::ReadAllText('snippets\tel.xml') -replace "`r`n", "`n"
+$stream = [IO.MemoryStream]::new([Text.UTF8Encoding]::new($false).GetBytes($text))
+(Get-FileHash -InputStream $stream -Algorithm SHA256).Hash.ToLower()
+```
+
+An entry without `sha256` still loads, but always asks for confirmation.
 
 A snippet file is just a normal template XML with fewer items. Include `<SupportedOS>` for
 any OS your items reference, so the importer can offer to add it.
@@ -534,8 +604,8 @@ npm run catalog:sync     # rewrite index.json from the files
 npm run catalog:check    # report whether it is out of date, without changing it
 ```
 
-`itemCount` is counted from the file, `version` comes from `<Version>`, and `updated` is
-set to today. A file with no `<Id>` gets a fresh GUID; copy it into the file's
+`itemCount` and `sha256` are computed from the file, `version` comes from `<Version>`, and
+`updated` is set to today. A file with no `<Id>` gets a fresh GUID; copy it into the file's
 `<Metadata>` so the entry id stays stable the next time you sync.
 
 **The build never rewrites the catalog.** It only validates, so what deploys is always
@@ -548,6 +618,7 @@ which catches a forgotten `catalog:sync`.
 
 - malformed `index.json`, an unsupported `schemaVersion`, a missing required field, or a duplicate entry `id`
 - an entry whose `url` points at a file that does not exist, or that is not a template
+- a malformed `sha256`, or one that does not match the local file it points at
 - a syntactically invalid variable (see [Marketplace options](#marketplace-options))
 
 It warns, without failing, when an `itemCount` is stale, when a snippet has no
@@ -565,10 +636,19 @@ npm run validate:catalog
 
 ### Trust
 
-Content loaded from a different origin than the app itself requires an explicit
-acknowledgement before it can be imported. Imported items can change registry values,
-disable services and delete files. Content served from the same origin as the app is treated
-as trusted.
+Imported items can change registry values, disable services and delete files, so content
+is only imported without an explicit acknowledgement when all of these hold:
+
+- its catalog entry has a `sha256`,
+- it was requested from the app's own origin or a [trusted host](#trusted-hosts),
+- and, after any redirects, it was still served from such a host.
+
+Everything else asks for confirmation first. If the downloaded file does not match the
+entry's `sha256`, the import is refused outright, whatever the host: the file has changed
+since the catalog was generated.
+
+The deployed app also sets a Content Security Policy that only allows scripts from its own
+origin, and its fonts are bundled, so the app makes no requests to third parties.
 
 Separately, items that arrived from the Marketplace or a `.reg` import are remembered for the
 session, and downloading a template containing any of them shows a summary first. That
@@ -598,7 +678,7 @@ tracking is in-memory only and is never written into the XML.
 | `"Name"=hex(7):…` | MultiString, one value per line |
 | `"Name"=hex(b):…` | Qword (full 64-bit precision) |
 | `"Name"=hex(4):…` | DWord (little-endian) |
-| `@="text"` | The key's default value |
+| `@="text"` | The key's (Default) value |
 | `"Name"=-` | DeleteValue |
 | `[-HKEY_…\Key]` | DeleteKeyRecursively |
 

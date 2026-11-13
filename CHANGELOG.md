@@ -2,6 +2,56 @@
 
 All notable changes to this project are documented here.
 
+## 13.11.2026
+
+### Default template
+
+FIX: Windows 11 22H2 and 23H2 are recognized again; the OS now matches the exact builds 22000, 22621, 22631, 26100, 26200, 26300 and 28000
+FIX: Disable default system screensaver writes ScreenSaveActive as a String, its actual registry type
+CHANGE: Windows Update, Delete Temporary Installation Files and Clear All Event Logs no longer run on physical machines
+CHANGE: The Windows Update description now says what the item does: it turns off automatic updates
+CHANGE: The two Edge Update default policies explain that they also block WebView2 installs and updates
+NEW: Remove hibernation file turns hibernation off with powercfg, so hiberfil.sys is deleted as well
+
+### Optimization script
+
+NEW: Exit codes for task sequences: 0 success, 1 fatal, 2 one or more items failed, 3 no matching OS
+NEW: -WhatIf lists what would be applied without changing anything
+NEW: Store apps are also removed from the provisioned image, so they no longer return for new profiles
+NEW: Registry changes log the previous value, and an empty value name sets or deletes the key's (Default) value
+NEW: Nutanix AHV, Bochs and VirtualBox are recognized as virtual, also from the BIOS version and serial number
+CHANGE: The log is written to %ProgramData%\WorkspaceOptimizer\Logs, so the temp cleanup can no longer delete it mid-run
+CHANGE: The script requires an elevated, 64-bit PowerShell session and says so up front
+FIX: When the platform cannot be detected the script stops, instead of treating a virtual machine as physical
+FIX: A PowerShell item whose command fails with an exit code is reported as Failed instead of Success
+FIX: An error from a single-line script output is shown in full, not as its first character
+FIX: A script written without CDATA runs, and an empty script is reported as Failed instead of Skipped
+FIX: Unloading the Default User hive is retried, and the Default profile location is read from the registry
+FIX: File and folder actions refuse empty, relative and drive-root paths, and treat paths literally
+
+### Interface
+
+NEW: Unsaved work is kept as a draft in the browser and offered for restore on the next visit
+NEW: Options → Download draft… saves a template that still has validation errors
+NEW: Opening a file lists comments and unknown elements that saving would drop
+FIX: Items with a type this version does not know are kept and saved unchanged, instead of losing their payload
+FIX: Re-opening the same file after cancelling the discard prompt works
+CHANGE: Fonts are bundled with the app instead of loaded from Google Fonts, and a Content Security Policy is set
+
+### Validation and tooling
+
+NEW: OS tags must be valid XML names, so a tag with a space can no longer produce an unreadable file
+NEW: Hive, DWord and Qword ranges, PowerShell engine and characters invalid in XML are validated
+FIX: Registry string values keep leading and trailing spaces
+FIX: A hive written in any case, such as hklm, is read as HKLM instead of being rejected
+FIX: A PowerShell script containing ]]> survives a save and reload
+FIX: .reg import: an empty (Default) value no longer blocks the download, and a comment ending in a backslash no longer swallows the next line
+
+### Marketplace
+
+NEW: Catalog entries carry a sha256; a file that no longer matches it is refused
+CHANGE: Content is only imported without confirmation when it has a sha256 and is still on a trusted host after redirects
+
 ## 12.08.2026
 
 ### Validation and tooling

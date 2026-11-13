@@ -11,7 +11,7 @@
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { join, relative, posix } from 'node:path'
-import { randomUUID } from 'node:crypto'
+import { randomUUID, createHash } from 'node:crypto'
 
 /** Folders under public/marketplace/ scanned for publishable files, and their kind. */
 export const KIND_DIRS = { template: 'template', snippet: 'snippet' }
@@ -30,6 +30,16 @@ function tags(xml) {
   const block = meta[1].match(/<Tags>([\s\S]*?)<\/Tags>/)
   if (!block) return []
   return [...block[1].matchAll(/<Tag>([\s\S]*?)<\/Tag>/g)].map(m => m[1].trim()).filter(Boolean)
+}
+
+/**
+ * SHA-256 (lowercase hex) of a file's text with a leading BOM removed and CRLF turned
+ * into LF, so Windows and Linux checkouts agree. Must match hashText in
+ * src/core/marketplace.ts.
+ */
+export function hashFile(absPath) {
+  const text = readFileSync(absPath, 'utf-8').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n')
+  return createHash('sha256').update(text, 'utf8').digest('hex')
 }
 
 /**
@@ -67,6 +77,7 @@ export function readXmlFile(absPath) {
     category: tag(xml, 'Category'),
     tags: tags(xml),
     hasSupportedOs: /<SupportedOS>/.test(xml),
+    sha256: hashFile(absPath),
   }
 }
 
@@ -108,6 +119,7 @@ export function buildEntry(file, xml, existing) {
     category: pick(xml.category, existing?.category, ''),
     tags: xml.tags.length ? xml.tags : (existing?.tags ?? []),
     itemCount: xml.itemCount,
+    sha256: xml.sha256,
   }
 }
 
@@ -120,6 +132,7 @@ export function pruneEntry(e) {
   if (e.category) out.category = e.category
   if (e.tags?.length) out.tags = e.tags
   if (typeof e.itemCount === 'number') out.itemCount = e.itemCount
+  if (e.sha256) out.sha256 = e.sha256
   return out
 }
 

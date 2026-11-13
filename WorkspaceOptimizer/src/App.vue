@@ -1,7 +1,7 @@
 <template>
   <div class="app-root">
     <div class="main-col">
-      <IconRail @new="onNew" @newblank="onNewBlank" @open="onOpen" @save="onSave" @downloadscript="onDownloadScript"
+      <IconRail @new="onNew" @newblank="onNewBlank" @open="onOpen" @save="onSave" @savedraft="onSaveDraft" @downloadscript="onDownloadScript"
         @manageos="showOsDialog = true" @pdf="onPdf" @about="showAboutDialog = true"
         @marketplace="onOpenMarketplace" @regfile="onRegImport"
         @properties="showProperties = true" />
@@ -26,6 +26,9 @@
     <MergePreviewDialog v-model:visible="showMergePreview" :plan="mergePlan" :source="mergeSource"
       @confirm="onMergeConfirm" />
     <DownloadWarningDialog v-model:visible="showDownloadWarning" @confirm="onDownloadConfirmed" />
+    <DroppedContentDialog v-model:visible="showDropped" :items="droppedContent" />
+    <DraftRestoreDialog v-model:visible="showDraft" :draft="pendingDraft"
+      @restore="onDraftRestore" @discard="onDraftDiscard" />
   </div>
 </template>
 
@@ -44,10 +47,13 @@ import MarketplaceDialog from './components/MarketplaceDialog.vue'
 import RegImportDialog from './components/RegImportDialog.vue'
 import MergePreviewDialog, { type SourceDescriptor } from './components/MergePreviewDialog.vue'
 import DownloadWarningDialog from './components/DownloadWarningDialog.vue'
+import DroppedContentDialog from './components/DroppedContentDialog.vue'
+import DraftRestoreDialog from './components/DraftRestoreDialog.vue'
+import { loadDraft, clearDraft, startAutosave, type Draft } from './store/draft'
 import { documentStore } from './store/document'
 import { uiStore } from './store/ui'
 import { provenanceStore, nextRegSourceId } from './store/provenance'
-import { parseXml } from './core/parser'
+import { parseXml, findDroppedContent } from './core/parser'
 import { serializeXml } from './core/serializer'
 import { formatVersion } from './core/version'
 import { buildMergePlan, applyMergePlan, type MergePlan } from './core/merge'
@@ -65,6 +71,10 @@ const showMarketplace = ref(false)
 const showRegImport = ref(false)
 const showMergePreview = ref(false)
 const showDownloadWarning = ref(false)
+const showDropped = ref(false)
+const droppedContent = ref<string[]>([])
+const showDraft = ref(false)
+const pendingDraft = ref<Draft | null>(null)
 const mergePlan = ref<MergePlan | null>(null)
 const mergeSource = ref<SourceDescriptor | null>(null)
 
@@ -95,22 +105,41 @@ async function onNewBlank() {
 function onOpen() { fileInput.value?.click() }
 
 function onFileSelected(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  // Reset first: an early return below would otherwise leave the same file selected,
+  // and picking it again fires no change event.
+  input.value = ''
   if (!file) return
   if (documentStore.dirty && !confirm('Discard unsaved changes?')) return
   const reader = new FileReader()
   reader.onload = () => {
     try {
-      documentStore.load(parseXml(reader.result as string), file.name)
+      const xml = reader.result as string
+      documentStore.load(parseXml(xml), file.name)
       uiStore.select(documentStore.document?.items[0]?.id ?? null)
+      droppedContent.value = findDroppedContent(xml)
+      showDropped.value = droppedContent.value.length > 0
     } catch (err) { alert('Failed to parse XML: ' + (err as Error).message) }
   }
   reader.readAsText(file)
-  ;(e.target as HTMLInputElement).value = ''
 }
 
 function onSave() {
   if (!documentStore.document || documentStore.hasErrors) return
+  startSave()
+}
+
+function onSaveDraft() {
+  const n = documentStore.validationResult.errors.length
+  if (!documentStore.document || !n) return
+  if (!confirm(`This template has ${n} validation error${n === 1 ? '' : 's'} and may not work with the deployment script.
+
+Download it as a draft anyway?`)) return
+  startSave()
+}
+
+function startSave() {
   // Imported content deserves a look before it leaves the browser.
   if (provenanceStore.hasImports) { showDownloadWarning.value = true; return }
   doSave()
@@ -137,11 +166,14 @@ function doSave() {
   }
   const blob = new Blob([serializeXml(documentStore.document)], { type: 'application/xml' })
   const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
+  const url = URL.createObjectURL(blob)
+  a.href = url
   a.download = documentStore.filename
   a.click()
-  URL.revokeObjectURL(a.href)
+  // Revoking right away can cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
   documentStore.dirty = false
+  clearDraft()
 }
 
 function onPdf() { showPdfDialog.value = true }
@@ -296,5 +328,30 @@ function applyMerge() {
   mergeSource.value = null
 }
 
-onMounted(() => { window.addEventListener('beforeunload', e => { if (documentStore.dirty) e.preventDefault() }) })
+function onDraftRestore() {
+  showDraft.value = false
+  const draft = pendingDraft.value
+  if (!draft) return
+  try {
+    documentStore.load(parseXml(draft.xml), draft.filename)
+    documentStore.dirty = true
+    uiStore.select(documentStore.document?.items[0]?.id ?? null)
+    uiStore.resetFilters()
+  } catch {
+    clearDraft()
+    alert('The autosaved draft could not be restored.')
+  }
+}
+
+function onDraftDiscard() {
+  showDraft.value = false
+  clearDraft()
+}
+
+onMounted(() => {
+  window.addEventListener('beforeunload', e => { if (documentStore.dirty) e.preventDefault() })
+  pendingDraft.value = loadDraft()
+  showDraft.value = !!pendingDraft.value
+  startAutosave()
+})
 </script>

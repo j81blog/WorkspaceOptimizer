@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Items>
   <Metadata>
-    <Version>2026.811.2200</Version>
+    <Version>2026.1113.1200</Version>
     <SchemaVersion>1</SchemaVersion>
     <Id>7aa42628-955f-4112-bcc7-837faa2fdd32</Id>
     <Name>Default Template</Name>
@@ -20,8 +20,13 @@
       <Abbreviation>W11</Abbreviation>
       <ServerOS>0</ServerOS>
       <Builds>
-        <BuildStartsWith>21</BuildStartsWith>
-        <BuildStartsWith>26</BuildStartsWith>
+        <BuildStartsWith>22000</BuildStartsWith>
+        <BuildStartsWith>22621</BuildStartsWith>
+        <BuildStartsWith>22631</BuildStartsWith>
+        <BuildStartsWith>26100</BuildStartsWith>
+        <BuildStartsWith>26200</BuildStartsWith>
+        <BuildStartsWith>26300</BuildStartsWith>
+        <BuildStartsWith>28000</BuildStartsWith>
       </Builds>
     </OS>
     <OS>
@@ -2777,7 +2782,7 @@ This can have significant impact on performance.</Description>
       <Path>.DEFAULT\Control Panel\Desktop</Path>
       <Action>SetValue</Action>
       <Value>0</Value>
-      <Type>DWord</Type>
+      <Type>String</Type>
     </Registry>
   </Item>
   <Item>
@@ -2801,6 +2806,27 @@ This can have significant impact on performance.</Description>
       <Value>0</Value>
       <Type>DWord</Type>
     </Registry>
+  </Item>
+  <Item>
+    <Name>Remove hibernation file</Name>
+    <Description>Turns hibernation off with powercfg, which also deletes C:\hiberfil.sys. The Disable Hibernate registry value alone leaves the file on disk.</Description>
+    <Type>PowerShell</Type>
+    <Category>Miscellaneous</Category>
+    <Order>80</Order>
+    <OS>
+      <Windows11>
+        <Execute>1</Execute>
+        <Physical>0</Physical>
+        <Virtual>1</Virtual>
+      </Windows11>
+    </OS>
+    <PowerShell>
+      <Engine>powershell</Engine>
+      <Script><![CDATA[& powercfg.exe /hibernate off
+if ($LASTEXITCODE -ne 0) {
+    throw "powercfg exited with code $LASTEXITCODE"
+}]]></Script>
+    </PowerShell>
   </Item>
   <Item>
     <Name>Disable memory dump creation</Name>
@@ -3130,7 +3156,8 @@ https://docs.microsoft.com/en-us/windows-hardware/drivers/nfc/what-s-new-in-nfc-
     <Description>You can specify the default behavior of all channels to allow or block Microsoft Edge updates when Microsoft Edge Update is used.
 (0) Installs disabled
 (1) Always allow installs
-(4) Always allow Machine-Wide</Description>
+(4) Always allow Machine-Wide
+NOTE: This default also applies to the WebView2 Runtime, which Teams, the new Outlook and Office add-ins depend on. WebView2 cannot be installed or updated through Edge Update while this is set. Not applied to physical machines. On a virtual golden image this is usually acceptable when Edge and WebView2 are updated by rebuilding the image.</Description>
     <Type>Registry</Type>
     <Category>Optional Components</Category>
     <Order>80</Order>
@@ -3176,7 +3203,8 @@ https://docs.microsoft.com/en-us/windows-hardware/drivers/nfc/what-s-new-in-nfc-
 (0) Updates disabled
 (1) Always allow updates
 (2) Manual updates only
-(3) Automatic silent updates only</Description>
+(3) Automatic silent updates only
+NOTE: This default also applies to the WebView2 Runtime, which Teams, the new Outlook and Office add-ins depend on. WebView2 cannot be installed or updated through Edge Update while this is set. Not applied to physical machines. On a virtual golden image this is usually acceptable when Edge and WebView2 are updated by rebuilding the image.</Description>
     <Type>Registry</Type>
     <Category>Optional Components</Category>
     <Order>80</Order>
@@ -3311,9 +3339,9 @@ You could though leave this alone as it would almost never be started unless a u
   </Item>
   <Item>
     <Name>Windows Update</Name>
-    <Description>Enables the detection, download, and installation of updates for Windows and other programs.
-NOTE: This read-only entry is analyzing if Windows Update has been disabled using Group Policy. This entry does NOT support disabling Windows Update.
-All of the relevant policies are under the path Computer configuration - Administrative Templates - Windows Components - Windows Update.
+    <Description>Turns off automatic Windows Update through policy (NoAutoUpdate=1).
+Intended for golden images, where updates are applied by rebuilding the image. Not applied to physical machines.
+The related policies are under Computer configuration - Administrative Templates - Windows Components - Windows Update.
 For more information, please refer to official Microsoft documentation: https://docs.microsoft.com/en-us/windows/deployment/update/waas-wufb-group-policy</Description>
     <Type>Registry</Type>
     <Category>Miscellaneous</Category>
@@ -3321,22 +3349,22 @@ For more information, please refer to official Microsoft documentation: https://
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2022>
     </OS>
@@ -5491,27 +5519,27 @@ Write-Host "Done"]]></Script>
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2022>
       <Windows10>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows10>
     </OS>
@@ -5642,27 +5670,27 @@ if (Test-Path $cleanmgr) {
     <OS>
       <Windows11>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows11>
       <Server2019>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2019>
       <Server2025>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2025>
       <Server2022>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Server2022>
       <Windows10>
         <Execute>1</Execute>
-        <Physical>1</Physical>
+        <Physical>0</Physical>
         <Virtual>1</Virtual>
       </Windows10>
     </OS>

@@ -1,4 +1,5 @@
 import type { TemplateDocument, ItemPayload } from './types'
+import { keepsWhitespace } from './parser'
 
 export function serializeXml(doc: TemplateDocument): string {
   const lines: string[] = ['<?xml version="1.0" encoding="utf-8"?>', '<Items>']
@@ -83,7 +84,7 @@ function serializePayload(payload: ItemPayload, lines: string[]): void {
       lines.push(`      <Name>${esc(r.name)}</Name>`)
       lines.push(`      <Path>${esc(r.path)}</Path>`)
       lines.push(`      <Action>${esc(r.action)}</Action>`)
-      lines.push(`      <Value>${esc(r.value)}</Value>`)
+      lines.push(`      <Value>${esc(r.value, !keepsWhitespace(r.registryType))}</Value>`)
       lines.push(`      <Type>${esc(r.registryType)}</Type>`)
       lines.push('    </Registry>')
       break
@@ -112,7 +113,7 @@ function serializePayload(payload: ItemPayload, lines: string[]): void {
     }
     case 'PowerShell': {
       const ps = payload
-      const safeScript = ps.script.replace(/]]>/g, ']]>]]><![CDATA[')
+      const safeScript = ps.script.replace(/]]>/g, ']]]]><![CDATA[>')
       lines.push('    <PowerShell>')
       lines.push(`      <Engine>${esc(ps.engine)}</Engine>`)
       lines.push(`      <Script><![CDATA[${safeScript}]]><\/Script>`)
@@ -129,12 +130,15 @@ function serializePayload(payload: ItemPayload, lines: string[]): void {
       lines.push('    </FileFolder>')
       break
     }
-    // Unknown: write nothing
+    case 'Unknown':
+      if (payload.rawXml) lines.push(payload.rawXml)
+      break
   }
 }
 
-function esc(str: string): string {
-  return (str ?? '').toString().trim()
+function esc(str: string, trim = true): string {
+  const s = (str ?? '').toString()
+  return (trim ? s.trim() : s)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

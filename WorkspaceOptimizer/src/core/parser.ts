@@ -119,14 +119,39 @@ function parsePayload(el: Element, type: ItemType): ItemPayload {
     case 'StoreApp':      return parseStoreApp(el)
     case 'PowerShell':    return parsePowerShell(el)
     case 'FileFolder':    return parseFileFolder(el)
-    default:              return { type: 'Unknown' }
+    default:              return { type: 'Unknown', rawXml: unrecognizedXml(el) }
   }
+}
+
+const ITEM_CHILDREN = ['Name', 'Description', 'Type', 'Category', 'Order', 'OS']
+
+/** Everything under an Item besides the fields this editor owns, so it can be written back unchanged. */
+function unrecognizedXml(item: Element): string {
+  const serializer = new XMLSerializer()
+  return Array.from(item.children)
+    .filter(c => !ITEM_CHILDREN.includes(c.tagName))
+    .map(c => serializer.serializeToString(c))
+    .join('\n')
+}
+
+const STRING_REG_TYPES = ['string', 'expandstring', 'multistring']
+
+/** String values are data, so their leading and trailing whitespace is significant. */
+export function keepsWhitespace(registryType: string): boolean {
+  return STRING_REG_TYPES.includes(registryType.toLowerCase())
 }
 
 function normalizeRegistryType(raw: string): string {
   const map: Record<string, string> = {
     dword: 'DWord', string: 'String', expandstring: 'ExpandString',
     multistring: 'MultiString', qword: 'Qword', binary: 'Binary'
+  }
+  return map[raw.toLowerCase()] ?? raw
+}
+
+function normalizeHive(raw: string): string {
+  const map: Record<string, string> = {
+    hklm: 'HKLM', hkcu: 'HKCU', hku: 'HKU', 'hku\\defaultuser': 'HKU\\DefaultUser'
   }
   return map[raw.toLowerCase()] ?? raw
 }
@@ -138,14 +163,16 @@ function parseRegistry(el: Element): RegistryPayload {
   const name = text(r, 'Name')
   // Legacy "Delete" migration
   if (action.toLowerCase() === 'delete') action = name === '' ? 'DeleteKey' : 'DeleteValue'
+  const registryType = normalizeRegistryType(text(r, 'Type'))
+  const rawValue = r.querySelector('Value')?.textContent ?? ''
   return {
     type: 'Registry',
-    hive: text(r, 'Hive') || 'HKLM',
+    hive: normalizeHive(text(r, 'Hive')) || 'HKLM',
     path: text(r, 'Path'),
     name,
     action,
-    value: text(r, 'Value'),
-    registryType: normalizeRegistryType(text(r, 'Type'))
+    value: keepsWhitespace(registryType) ? rawValue : rawValue.trim(),
+    registryType
   }
 }
 
@@ -187,4 +214,64 @@ function parseFileFolder(el: Element): FileFolderPayload {
     itemType: text(ff, 'ItemType') || 'File',
     newName: text(ff, 'NewName')
   }
+}
+
+const KNOWN_CHILDREN: Record<string, string[]> = {
+  Items: ['Metadata', 'SupportedOS', 'Item'],
+  Metadata: ['Version', 'SchemaVersion', 'Id', 'Name', 'Description', 'Author', 'Category', 'Tags'],
+  Tags: ['Tag'],
+  SupportedOS: ['OS'],
+  OS: ['Tag', 'Name', 'Abbreviation', 'ServerOS', 'Builds'],
+  Builds: ['BuildStartsWith'],
+  Item: [...ITEM_CHILDREN, 'Registry', 'Service', 'ScheduledTask', 'StoreApp', 'PowerShell', 'FileFolder'],
+  Registry: ['Hive', 'Name', 'Path', 'Action', 'Value', 'Type'],
+  Service: ['Name', 'Action'],
+  ScheduledTask: ['Name', 'Path', 'Action'],
+  StoreApp: ['Name'],
+  PowerShell: ['Engine', 'Script'],
+  FileFolder: ['Path', 'Action', 'ItemType', 'NewName']
+}
+
+/**
+ * Content in an XML file that parsing and re-saving would silently drop: comments and
+ * elements the editor has no field for. Unrecognized item types are not listed because
+ * they are kept verbatim.
+ */
+export function findDroppedContent(xmlString: string): string[] {
+  const doc = new DOMParser().parseFromString(xmlString, 'application/xml')
+  if (doc.querySelector('parsererror') || !doc.documentElement) return []
+  const found: string[] = []
+
+  let comments = 0
+  const walker = doc.createTreeWalker(doc, 0x80 /* NodeFilter.SHOW_COMMENT */)
+  while (walker.nextNode()) comments++
+  if (comments) found.push(`${comments} XML comment${comments === 1 ? '' : 's'}`)
+
+  const visit = (el: Element, where: string) => {
+    // An Item's children under <OS> are OS tags, which can be anything.
+    if (el.tagName === 'OS' && el.parentElement?.tagName === 'Item') {
+      for (const tagEl of Array.from(el.children)) {
+        for (const c of Array.from(tagEl.children)) {
+          if (!['Execute', 'Physical', 'Virtual'].includes(c.tagName)) found.push(`<${c.tagName}> in ${where}`)
+        }
+      }
+      return
+    }
+    const known = KNOWN_CHILDREN[el.tagName]
+    if (!known) return
+    const isUnknownItem = el.tagName === 'Item' &&
+      resolveType(el.querySelector('Type')?.textContent?.trim() ?? '') === 'Unknown'
+    for (const c of Array.from(el.children)) {
+      if (!known.includes(c.tagName)) {
+        if (!isUnknownItem) found.push(`<${c.tagName}> in ${where}`)
+        continue
+      }
+      const label = c.tagName === 'Item'
+        ? `item "${c.querySelector('Name')?.textContent?.trim() || '(unnamed)'}"`
+        : c.tagName === 'OS' ? `OS "${c.querySelector('Tag')?.textContent?.trim() ?? ''}"` : where
+      visit(c, label)
+    }
+  }
+  visit(doc.documentElement, 'the file')
+  return found
 }
