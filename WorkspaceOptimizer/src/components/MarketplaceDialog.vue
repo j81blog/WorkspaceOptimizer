@@ -176,7 +176,9 @@ const resolvedUrl = computed(() =>
 )
 const sameOrigin = computed(() => !resolvedUrl.value || isSameOrigin(resolvedUrl.value, location.origin))
 const trusted = computed(() =>
-  !resolvedUrl.value || (!!selected.value?.sha256 && isTrustedSource(resolvedUrl.value, location.origin))
+  !resolvedUrl.value || (!!selected.value?.sha256
+    && isTrustedSource(selected.value.catalogUrl, location.origin)
+    && isTrustedSource(resolvedUrl.value, location.origin))
 )
 const originHost = computed(() => originLabel(resolvedUrl.value))
 

@@ -6,22 +6,20 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: WorkspaceOptimizer/.nvmrc
       - run: npm ci
         working-directory: WorkspaceOptimizer
       - name: Upload npm logs on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: npm-logs
           path: /home/runner/.npm/_logs/
@@ -33,17 +31,6 @@ jobs:
         working-directory: WorkspaceOptimizer
       - run: npm run test
         working-directory: WorkspaceOptimizer
-      # Re-checked here because an admin push to main bypasses pr-validate, and this is the
-      # checkout that becomes the published file. Authenticode needs Windows, so the two
-      # signature tests skip; what runs here is the line-ending and encoding guard.
-      - name: Validate the published PowerShell script
-        shell: pwsh
-        run: |
-          Install-Module Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck -Scope CurrentUser
-          $config = New-PesterConfiguration
-          $config.Run.Path = 'WorkspaceOptimizer/tests/powershell'
-          $config.Run.Exit = $true
-          Invoke-Pester -Configuration $config
       - run: npm run build
         working-directory: WorkspaceOptimizer
         env:
@@ -75,16 +62,38 @@ jobs:
           # Set either to "true" to drop that import route from the build entirely.
           VITE_DISABLE_MARKETPLACE:        ${{ vars.VITE_DISABLE_MARKETPLACE }}
           VITE_DISABLE_REG_IMPORT:         ${{ vars.VITE_DISABLE_REG_IMPORT }}
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ./WorkspaceOptimizer/dist
 
-  deploy:
-    needs: build
+  # Re-checked here because an admin push to main bypasses pr-validate. Authenticode needs
+  # Windows, so the two signature tests skip; what runs here is the line-ending and
+  # encoding guard, on the same commit and platform as the build. A job of its own because
+  # Pester is installed unpinned from the PowerShell Gallery and must not be able to touch
+  # the artifact that gets published.
+  validate-script:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate the published PowerShell script
+        shell: pwsh
+        run: |
+          Install-Module Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck -Scope CurrentUser
+          $config = New-PesterConfiguration
+          $config.Run.Path = 'WorkspaceOptimizer/tests/powershell'
+          $config.Run.Exit = $true
+          Invoke-Pester -Configuration $config
+
+  deploy:
+    needs: [build, validate-script]
+    runs-on: ubuntu-latest
+    # Only here, so the build job, which runs npm packages, cannot publish.
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

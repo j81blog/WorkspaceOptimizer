@@ -28,6 +28,13 @@ FIX: An error from a single-line script output is shown in full, not as its firs
 FIX: A script written without CDATA runs, and an empty script is reported as Failed instead of Skipped
 FIX: Unloading the Default User hive is retried, and the Default profile location is read from the registry
 FIX: File and folder actions refuse empty, relative and drive-root paths, and treat paths literally
+FIX: A path that only reaches a drive root through . or .. segments, such as C:\Windows\.., is refused as well
+FIX: Registry paths and value names are taken literally, so a key named * no longer matches every key beside it
+CHANGE: Registry items only act on HKLM, HKCU and HKU; any other hive is reported as Failed
+CHANGE: The log folder under %ProgramData% is restricted to administrators, and is refused when it is a link or was created by a standard user
+CHANGE: A template containing a DTD is rejected, and reg.exe and Windows PowerShell are started from their full system path
+FIX: A Store app name with a wildcard, such as *Xbox*, is also removed from the provisioned image, not only for existing users
+CHANGE: Store app items that are not installed are skipped without querying Windows for each one, which shortens a run
 
 ### Interface
 
@@ -46,11 +53,18 @@ FIX: Registry string values keep leading and trailing spaces
 FIX: A hive written in any case, such as hklm, is read as HKLM instead of being rejected
 FIX: A PowerShell script containing ]]> survives a save and reload
 FIX: .reg import: an empty (Default) value no longer blocks the download, and a comment ending in a backslash no longer swallows the next line
+FIX: The submission review reads files with an XML parser, so a script behind a lowercase type or an attribute on a tag is no longer missed, and scripts are printed in full
+CHANGE: Workflow actions are pinned to a commit, only the deploy job can publish, and dependency updates wait 7 days after a release
+CHANGE: Dropped the unused pdfmake dependency
+CHANGE: The deploy workflow runs the script checks in a separate job, so Pester can no longer touch the site that gets published
 
 ### Marketplace
 
 NEW: Catalog entries carry a sha256; a file that no longer matches it is refused
 CHANGE: Content is only imported without confirmation when it has a sha256 and is still on a trusted host after redirects
+CHANGE: The catalog listing an entry must itself be on a trusted host, so an untrusted catalog cannot vouch for a file on a trusted one
+CHANGE: The import preview shows the code of each PowerShell item
+FIX: The 2 MB limit on a catalog file is enforced while downloading, not after
 
 ## 12.08.2026
 

@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Minor and patch bumps merge unattended and deploy, so wait out the window in which
+    # a hijacked release is usually caught and pulled. Security updates are not delayed.
+    cooldown:
+      default-days: 7
     groups:
       # Majors are deliberately left out so a Vite or PrimeVue jump lands on its own PR.
       npm-minor-patch:
@@ -30,6 +34,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       actions:
         update-types: [minor, patch, major]

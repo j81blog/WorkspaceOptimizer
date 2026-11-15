@@ -60,7 +60,8 @@ export function readXmlFile(absPath) {
     return { ok: false, error: 'is not a Workspace Optimizer template (no <Items> root)' }
   }
 
-  const itemCount = (xml.match(/<Item>/g) ?? []).length
+  // An opening tag may carry attributes or be self-closing; XML parsers accept both.
+  const itemCount = (xml.match(/<Item[\s>/]/g) ?? []).length
   if (itemCount === 0) {
     return { ok: false, error: 'contains no <Item> elements' }
   }

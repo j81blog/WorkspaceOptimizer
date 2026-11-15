@@ -93,6 +93,23 @@ describe('fetchEntry', () => {
     expect(r.trusted).toBe(false)
   })
 
+  it('treats a trusted-host file as untrusted when the catalog vouching for it is not trusted', async () => {
+    const mp = await load()
+    const fileUrl = 'https://cdn.example.com/other/a.xml'
+    vi.stubGlobal('fetch', vi.fn(async () => respond(XML, fileUrl)))
+    const entry = mp.normalizeIndex(
+      { schemaVersion: 1, entries: [{ id: 'a', kind: 'template', name: 'A', url: fileUrl, sha256: await mp.hashText(XML) }] },
+      'https://evil.example.net/index.json'
+    ).entries[0]
+    expect((await mp.fetchEntry(entry)).trusted).toBe(false)
+  })
+
+  it('stops reading a body that passes the size limit, whatever Content-Length says', async () => {
+    const mp = await load()
+    vi.stubGlobal('fetch', vi.fn(async () => respond('x'.repeat(2 * 1024 * 1024 + 1))))
+    await expect(mp.fetchEntry(entryFor(mp))).rejects.toMatchObject({ kind: 'too-large' })
+  })
+
   it('treats content from an untrusted host as untrusted even with a valid hash', async () => {
     const mp = await load('')
     vi.stubGlobal('fetch', vi.fn(async () => respond(XML, 'https://cdn.example.com/cat/a.xml')))

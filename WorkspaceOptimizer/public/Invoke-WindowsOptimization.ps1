@@ -18,6 +18,8 @@
         Directory where the tab-separated log file is written (timestamp, level, type, item, message).
         Defaults to $Env:ProgramData\WorkspaceOptimizer\Logs and is created when missing.
         Falls back to $Env:Temp if the specified path is not writable.
+        A folder under $Env:ProgramData is restricted to administrators and SYSTEM, and is
+        refused when it is a link or was created by a non-administrator.
     .PARAMETER LogLevel
         Controls which entries are written to the log file.
           Info    - Errors, warnings, successes, and all item results (default)
@@ -105,6 +107,11 @@ $script:DefaultUserMounted = $false
 $script:DefaultUserMountError = $null
 $script:HiveUnloadFailed = $false
 $script:ProvisionedPackages = $null
+$script:InstalledPackageNames = $null
+
+# Full paths, so an elevated run never picks up a same-named program from PATH
+$script:RegExe = Join-Path -Path $Env:SystemRoot -ChildPath 'System32\reg.exe'
+$script:WindowsPowerShellExe = Join-Path -Path $Env:SystemRoot -ChildPath 'System32\WindowsPowerShell\v1.0\powershell.exe'
 
 
 #region Logging
@@ -115,15 +122,45 @@ function Initialize-LogFile {
     $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
     $fileName = "WindowsOptimization_$timestamp.log"
 
+    # Standard users can create folders under ProgramData, so a log folder there is only used
+    # when an administrator owns every level of it, and it is then closed to everyone else
+    $programData = [System.IO.Path]::GetFullPath($Env:ProgramData).TrimEnd('\')
+    $adminSids = @('S-1-5-32-544', 'S-1-5-18')
+    $trustedOwners = $adminSids + [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+
     foreach ($dir in @($Directory, $Env:Temp)) {
         try {
-            if (-not (Test-Path -Path $dir)) {
+            if (-not (Test-Path -LiteralPath $dir)) {
                 New-Item -Path $dir -ItemType Directory -Force -ErrorAction Stop -WhatIf:$false | Out-Null
             }
-            $candidate = Join-Path $dir $fileName
-            [System.IO.File]::OpenWrite($candidate).Close()
+            $folder = Get-Item -LiteralPath $dir -Force -ErrorAction Stop
+
+            if ($folder.FullName.StartsWith("$programData\", [System.StringComparison]::OrdinalIgnoreCase)) {
+                $level = $folder
+                while ($level.FullName.Length -gt $programData.Length) {
+                    $owner = (Get-Acl -LiteralPath $level.FullName -ErrorAction Stop).GetOwner([System.Security.Principal.SecurityIdentifier]).Value
+                    if (($level.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -or $owner -notin $trustedOwners) {
+                        throw "'$($level.FullName)' is a link or is not owned by an administrator"
+                    }
+                    $level = $level.Parent
+                }
+
+                $acl = Get-Acl -LiteralPath $folder.FullName -ErrorAction Stop
+                $acl.SetAccessRuleProtection($true, $false)
+                foreach ($rule in @($acl.Access)) { $null = $acl.RemoveAccessRule($rule) }
+                foreach ($sid in $adminSids) {
+                    $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new(
+                            [System.Security.Principal.SecurityIdentifier]$sid, 'FullControl', 'ContainerInherit, ObjectInherit', 'None', 'Allow'))
+                }
+                Set-Acl -LiteralPath $folder.FullName -AclObject $acl -ErrorAction Stop -WhatIf:$false
+            }
+
+            # CreateNew, so a file planted under this name is never opened
+            $candidate = Join-Path $folder.FullName $fileName
+            [System.IO.File]::Open($candidate, [System.IO.FileMode]::CreateNew).Close()
             return $candidate
         } catch {
+            Write-Warning "Log folder '$dir' was not used: $($_.Exception.Message)"
             continue
         }
     }
@@ -385,7 +422,7 @@ function Invoke-PowerShellAction {
     # itself running under Windows PowerShell 5.1. Otherwise (e.g. this script running
     # under pwsh), run powershell.exe as a child process so Engine=powershell reliably
     # means Windows PowerShell 5.1 regardless of the host.
-    $hostExe = if ($engine -eq 'powershell' -and $PSVersionTable.PSEdition -eq 'Core') { 'powershell' } else { $null }
+    $hostExe = if ($engine -eq 'powershell' -and $PSVersionTable.PSEdition -eq 'Core') { $script:WindowsPowerShellExe } else { $null }
 
     # pwsh / powershell (cross-engine) - child process (different binary), output always printed and logged
     if ($engine -eq 'pwsh' -or $hostExe) {
@@ -523,18 +560,25 @@ function Invoke-FileFolderAction {
     }
 
     # Guard against an empty XML field turning into a recursive delete of the wrong location
-    $trimmedPath = if ($path) { $path.Trim().TrimEnd('\', '/') } else { '' }
     $pathProblem = if ([string]::IsNullOrWhiteSpace($path)) {
         'Path is empty'
     } elseif ($path.Trim() -notmatch '^(?:[A-Za-z]:[\\/]|\\\\)') {
         "Path must be absolute: $path"
-    } elseif ($trimmedPath -match '^[A-Za-z]:$' -or $trimmedPath -match '^\\\\[^\\]+(?:\\[^\\]+)?$') {
-        "Refusing to act on a drive or share root: $path"
+    } else {
+        # Resolve . and .. first, otherwise C:\Windows\.. gets past the root check
+        $fullPath = try { [System.IO.Path]::GetFullPath($path.Trim()) } catch { $null }
+        $trimmedPath = "$fullPath".TrimEnd('\', '/')
+        if (-not $fullPath) {
+            "Path is not valid: $path"
+        } elseif ($trimmedPath -match '^[A-Za-z]:$' -or $trimmedPath -match '^\\\\[^\\]+(?:\\[^\\]+)?$') {
+            "Refusing to act on a drive or share root: $path"
+        }
     }
     if ($pathProblem) {
         Write-Log -Level 'Error' -Type 'FileFolder' -Item $Item.Name -Message $pathProblem
         return New-ActionResult -Status 'Failed' -Message $pathProblem
     }
+    $path = $fullPath
 
     switch ($action) {
         'Remove' {
@@ -641,6 +685,16 @@ function Invoke-RegistryAction {
     $rawPath = if ([string]::IsNullOrWhiteSpace($Item.Registry.Path)) { $regHive } else { "$regHive\$($Item.Registry.Path)" }
     $regPath = $rawPath -replace '^(HK[A-Z_]+)\\', '$1:\'
 
+    # Anything else is not a registry drive, and the provider cmdlets below would treat it as a file path
+    if ($regPath -notmatch '^(?:HKLM|HKCU|HKU):\\') {
+        Write-Log -Level 'Error' -Type 'Registry' -Item $Item.Name -Message "Unsupported registry location: $rawPath"
+        return New-ActionResult -Status 'Failed' -Message "Unsupported registry location: $rawPath"
+    }
+
+    # Values are read and deleted through the .NET key, where '' is the default value. The
+    # provider's -Name takes wildcards, and * [ ] are valid characters in a value name
+    $valueName = "$regName"
+
     # Lazily mount the DefaultUser hive on first use
     if ($regPath -like 'HKU:\DefaultUser*' -and -not $script:DefaultUserMounted) {
         if (-not $script:DefaultUserMountError) {
@@ -659,51 +713,50 @@ function Invoke-RegistryAction {
     try {
         switch ($regAction) {
             'SetValue' {
-                if (-not (Test-Path -Path $regPath)) {
+                if (-not (Test-Path -LiteralPath $regPath)) {
                     New-Item -Path $regPath -Force -ErrorAction Stop | Out-Null
                 }
-                $previous = Get-ItemProperty -Path $regPath -Name $propName -ErrorAction SilentlyContinue
-                $previousText = if ($null -ne $previous -and $previous.PSObject.Properties.Name -contains $propName) { "$($previous.$propName -join ',')" } else { 'not present' }
+                $regKey = Get-Item -LiteralPath $regPath -ErrorAction Stop
+                $previousText = if ($regKey.GetValueNames() -contains $valueName) { "$($regKey.GetValue($valueName) -join ',')" } else { 'not present' }
+                $regKey.Close()
                 Write-Log -Level 'Info' -Type 'Registry' -Item $Item.Name -Message "Previous value of $regPath\$propName : $previousText"
-                Set-ItemProperty -Path $regPath -Name $propName -Value $regValue -Type $regType -Force -ErrorAction Stop
+                Set-ItemProperty -LiteralPath $regPath -Name $propName -Value $regValue -Type $regType -Force -ErrorAction Stop
                 Write-Log -Level 'Success' -Type 'Registry' -Item $Item.Name -Message "Set $regPath\$propName = $regValue ($regType)"
                 return New-ActionResult -Status 'Success'
             }
             'DeleteKey' {
-                if (-not (Test-Path -Path $regPath)) {
+                if (-not (Test-Path -LiteralPath $regPath)) {
                     Write-Log -Level 'Info' -Type 'Registry' -Item $Item.Name -Message "Skipped - key not found: $regPath"
                     return New-ActionResult -Status 'Skipped' -Message 'Skipped (key not found)'
                 }
-                Remove-Item -Path $regPath -Force -ErrorAction Stop
+                Remove-Item -LiteralPath $regPath -Force -ErrorAction Stop
                 Write-Log -Level 'Success' -Type 'Registry' -Item $Item.Name -Message "Deleted key: $regPath"
                 return New-ActionResult -Status 'Success'
             }
             'DeleteKeyRecursively' {
-                if (-not (Test-Path -Path $regPath)) {
+                if (-not (Test-Path -LiteralPath $regPath)) {
                     Write-Log -Level 'Info' -Type 'Registry' -Item $Item.Name -Message "Skipped - key not found: $regPath"
                     return New-ActionResult -Status 'Skipped' -Message 'Skipped (key not found)'
                 }
-                Remove-Item -Path $regPath -Recurse -Force -ErrorAction Stop
+                Remove-Item -LiteralPath $regPath -Recurse -Force -ErrorAction Stop
                 Write-Log -Level 'Success' -Type 'Registry' -Item $Item.Name -Message "Deleted key recursively: $regPath"
                 return New-ActionResult -Status 'Success'
             }
             'DeleteValue' {
-                if (-not (Test-Path -Path $regPath)) {
+                if (-not (Test-Path -LiteralPath $regPath)) {
                     Write-Log -Level 'Info' -Type 'Registry' -Item $Item.Name -Message "Skipped - key not found: $regPath"
                     return New-ActionResult -Status 'Skipped' -Message 'Skipped (key not found)'
                 }
-                $existingProp = Get-ItemProperty -Path $regPath -Name $propName -ErrorAction SilentlyContinue
-                if ($null -eq $existingProp -or $existingProp.PSObject.Properties.Name -notcontains $propName) {
-                    Write-Log -Level 'Info' -Type 'Registry' -Item $Item.Name -Message "Skipped - value not found: $regPath\$propName"
-                    return New-ActionResult -Status 'Skipped' -Message 'Skipped (value not found)'
-                }
-                Write-Log -Level 'Info' -Type 'Registry' -Item $Item.Name -Message "Deleting $regPath\$propName, current value: $($existingProp.$propName -join ',')"
-                if ($propName -eq '(default)') {
-                    # Remove-ItemProperty cannot address the default value, so go through the .NET key
-                    $regKey = (Get-Item -LiteralPath $regPath -ErrorAction Stop).OpenSubKey('', $true)
-                    try { $regKey.DeleteValue('') } finally { $regKey.Close() }
-                } else {
-                    Remove-ItemProperty -Path $regPath -Name $propName -Force -ErrorAction Stop
+                $regKey = (Get-Item -LiteralPath $regPath -ErrorAction Stop).OpenSubKey('', $true)
+                try {
+                    if ($regKey.GetValueNames() -notcontains $valueName) {
+                        Write-Log -Level 'Info' -Type 'Registry' -Item $Item.Name -Message "Skipped - value not found: $regPath\$propName"
+                        return New-ActionResult -Status 'Skipped' -Message 'Skipped (value not found)'
+                    }
+                    Write-Log -Level 'Info' -Type 'Registry' -Item $Item.Name -Message "Deleting $regPath\$propName, current value: $($regKey.GetValue($valueName) -join ',')"
+                    $regKey.DeleteValue($valueName)
+                } finally {
+                    $regKey.Close()
                 }
                 Write-Log -Level 'Success' -Type 'Registry' -Item $Item.Name -Message "Deleted value: $regPath\$propName"
                 return New-ActionResult -Status 'Success'
@@ -766,16 +819,26 @@ function Invoke-StoreAppAction {
     try {
         $removedInstalled = $false
 
-        $currentUserPkg = Get-AppxPackage -Name $appName -ErrorAction SilentlyContinue
-        if ($currentUserPkg) {
-            $null = $currentUserPkg | Remove-AppxPackage -ErrorAction Stop
-            $removedInstalled = $true
+        # Listing packages takes seconds, so list the names once and only query an app that is in it
+        # A name that was removed since stays in the list, which costs a query but is never wrong
+        if ($null -eq $script:InstalledPackageNames) {
+            $script:InstalledPackageNames = @(
+                @(Get-AppxPackage -AllUsers -ErrorAction SilentlyContinue) + @(Get-AppxPackage -ErrorAction SilentlyContinue) |
+                    ForEach-Object { $_.Name } | Sort-Object -Unique
+            )
         }
+        if (@($script:InstalledPackageNames -like $appName).Count -gt 0) {
+            $currentUserPkg = Get-AppxPackage -Name $appName -ErrorAction SilentlyContinue
+            if ($currentUserPkg) {
+                $null = $currentUserPkg | Remove-AppxPackage -ErrorAction Stop
+                $removedInstalled = $true
+            }
 
-        $allUsersPkg = Get-AppxPackage -AllUsers -Name $appName -ErrorAction SilentlyContinue
-        if ($allUsersPkg) {
-            $null = $allUsersPkg | Remove-AppxPackage -AllUsers -ErrorAction Stop
-            $removedInstalled = $true
+            $allUsersPkg = Get-AppxPackage -AllUsers -Name $appName -ErrorAction SilentlyContinue
+            if ($allUsersPkg) {
+                $null = $allUsersPkg | Remove-AppxPackage -AllUsers -ErrorAction Stop
+                $removedInstalled = $true
+            }
         }
 
         # The provisioned copy would otherwise reinstall the app for every new profile
@@ -783,13 +846,15 @@ function Invoke-StoreAppAction {
         if ($null -eq $script:ProvisionedPackages) {
             $script:ProvisionedPackages = @(Get-AppxProvisionedPackage -Online -ErrorAction Stop)
         }
-        $provisionedPkg = @($script:ProvisionedPackages | Where-Object { $_.DisplayName -eq $appName })
+        $provisionedPkg = @($script:ProvisionedPackages | Where-Object { $_.DisplayName -like $appName })
         if ($provisionedPkg.Count -gt 0) {
             $provisionedParams = @{ Online = $true ; ErrorAction = 'Stop' }
             if ((Get-Command -Name 'Remove-AppxProvisionedPackage').Parameters.ContainsKey('AllUsers')) {
                 $provisionedParams['AllUsers'] = $true
             }
             $null = $provisionedPkg | Remove-AppxProvisionedPackage @provisionedParams
+            # Or a later item matching the same package would try to remove it again and fail
+            $script:ProvisionedPackages = @($script:ProvisionedPackages | Where-Object { $_.DisplayName -notlike $appName })
         }
 
         if ($removedInstalled -or $provisionedPkg.Count -gt 0) {
@@ -824,7 +889,7 @@ function Mount-DefaultUserHive {
     if (Test-Path 'HKU:\DefaultUser') {
         [GC]::Collect()
         [GC]::WaitForPendingFinalizers()
-        $unloadResult = & reg unload 'HKU\DefaultUser' 2>&1
+        $unloadResult = & $script:RegExeunload 'HKU\DefaultUser' 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "HKU\DefaultUser already exists and could not be unloaded: $unloadResult"
         }
@@ -844,7 +909,7 @@ function Mount-DefaultUserHive {
         throw "Default user hive not found: $datFile"
     }
 
-    $loadResult = & reg load 'HKU\DefaultUser' $datFile 2>&1
+    $loadResult = & $script:RegExeload 'HKU\DefaultUser' $datFile 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to mount DefaultUser hive: $loadResult"
     }
@@ -864,7 +929,7 @@ function Dismount-DefaultUserHive {
         [GC]::WaitForPendingFinalizers()
         Start-Sleep -Seconds 1  # give it a moment to release handles before unmounting
 
-        $unloadResult = & reg unload 'HKU\DefaultUser' 2>&1
+        $unloadResult = & $script:RegExeunload 'HKU\DefaultUser' 2>&1
         if ($LASTEXITCODE -eq 0) {
             $unloaded = $true
             break
@@ -902,8 +967,18 @@ $typeMap = @{
 #region Load XML
 
 if (Test-Path -Path $FilePath) {
+    # A template needs neither a DTD nor external entities, and both can pull in outside content
+    # XmlTextReader rather than XmlReader.Create, which would turn CRLF inside values into LF
     $xml = [System.Xml.XmlDocument]::new()
-    $xml.Load($FilePath)
+    $xml.XmlResolver = $null
+    $reader = [System.Xml.XmlTextReader]::new((Convert-Path -Path $FilePath))
+    $reader.DtdProcessing = [System.Xml.DtdProcessing]::Prohibit
+    $reader.XmlResolver = $null
+    try {
+        $xml.Load($reader)
+    } finally {
+        $reader.Dispose()
+    }
 } else {
     Write-Host "Error: XML file not found at $FilePath" -ForegroundColor Red
     exit 1
@@ -1099,8 +1174,8 @@ exit $exitCode
 # SIG # Begin signature block
 # MII6AgYJKoZIhvcNAQcCoII58zCCOe8CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCk4/cGfSm9zGgh
-# jrKTIqkRL5waP0waYzbcq9d0unl/7qCCIiYwggXMMIIDtKADAgECAhBUmNLR1FsZ
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCS5G1oYw1C2E31
+# 7d//Hr5woRW2gRCfyxiOH6d+kL/t/6CCIiYwggXMMIIDtKADAgECAhBUmNLR1FsZ
 # lUgTecgRwIeZMA0GCSqGSIb3DQEBDAUAMHcxCzAJBgNVBAYTAlVTMR4wHAYDVQQK
 # ExVNaWNyb3NvZnQgQ29ycG9yYXRpb24xSDBGBgNVBAMTP01pY3Jvc29mdCBJZGVu
 # dGl0eSBWZXJpZmljYXRpb24gUm9vdCBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkgMjAy
@@ -1131,98 +1206,98 @@ exit $exitCode
 # uVxzmq/FdxeDWds3GhhyVKVB0rYjdaNDmuV3fJZ5t0GNv+zcgKCf0Xd1WF81E+Al
 # GmcLfc4l+gcK5GEh2NQc5QfGNpn0ltDGFf5Ozdeui53bFv0ExpK91IjmqaOqu/dk
 # ODtfzAzQNb50GQOmxapMomE2gj4d8yu8l13bS3g7LfU772Aj6PXsCyM2la+YZr9T
-# 03u4aUoqlmZpxJTG9F9urJh4iIAGXKKy7aIwggbAMIIEqKADAgECAhMzAAnRTNHj
-# TL95QiIDAAAACdFMMA0GCSqGSIb3DQEBDAUAMFoxCzAJBgNVBAYTAlVTMR4wHAYD
+# 03u4aUoqlmZpxJTG9F9urJh4iIAGXKKy7aIwggbAMIIEqKADAgECAhMzAAodowCw
+# ZKca+kIUAAAACh2jMA0GCSqGSIb3DQEBDAUAMFoxCzAJBgNVBAYTAlVTMR4wHAYD
 # VQQKExVNaWNyb3NvZnQgQ29ycG9yYXRpb24xKzApBgNVBAMTIk1pY3Jvc29mdCBJ
-# RCBWZXJpZmllZCBDUyBFT0MgQ0EgMDMwHhcNMjYxMTEyMDE1MDMxWhcNMjYxMTE1
-# MDE1MDMxWjCBgzELMAkGA1UEBhMCTkwxFjAUBgNVBAgTDU5vb3JkLUJyYWJhbnQx
+# RCBWZXJpZmllZCBDUyBFT0MgQ0EgMDQwHhcNMjYxMTE0MDE0MzI5WhcNMjYxMTE3
+# MDE0MzI5WjCBgzELMAkGA1UEBhMCTkwxFjAUBgNVBAgTDU5vb3JkLUJyYWJhbnQx
 # EjAQBgNVBAcTCVNjaGlqbmRlbDEjMCEGA1UEChMaSm9obiBCaWxsZWtlbnMgQ29u
 # c3VsdGFuY3kxIzAhBgNVBAMTGkpvaG4gQmlsbGVrZW5zIENvbnN1bHRhbmN5MIIB
-# ojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEArnOHT0pTNnzwlUDhmtsxAv8i
-# U8rNL0EomIc3pMg/NDf9MgMB+tyAGO8p5hAcSpXH9asXQvjLBs4zinFlIDRQpnQ+
-# 0I4faws6raoBGN8GnV7Ah7wCcQWvlb0vkMndZaJc8f8CJbbbLw7Mjj96qL8ZP3sV
-# 1PtlQPtnE1quSqI6c3U6vx3XloSkvWBxP3XPNhQCBDn9aqP53k0KbM1TzMsH9D9Y
-# MSqRirHrqO9Zon+8GYAVjFt4b90eGYUDOVX6NKUtgiEdFD85cFnsd9fNgI63VrKW
-# j79JRqY6RiI0whJizzoD8q92pXO0V9glNs+oDr5DXTnLT54Ay3kTeuYrmydPrV8U
-# G86GhrkCl6mg8ibxkiV9W60UzAdRsWlcVaDa6PXp9Kjgzmifa0eeOFmsiP7cGtL7
-# zcmJn1dILEXzwoEpS2nyhepmhbzhy192qxAxIDckzkAXoSmp3hxOjro7F8w/L+w/
-# FVInhMYs1UgsvoIODFJt4fG9WDR4HAWBIZ54fiZ/AgMBAAGjggHTMIIBzzAMBgNV
+# ojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAjRnPAM1HGRP8RkFjl8tNLv0x
+# cyLNOGRhuQ2YoXCTooma6WC8caZo9eOvEaO6xUjlQH+nZb5DC1/nACRk0bPdWcbK
+# MmaGAQD6qLzVl/ttwffV6i3l3ZVT3JNRcMHmc6+H5N0fjvFWiJC7iIBIsEr1v04+
+# FZS5k0ZVkxaqdPgsDvKxhH/AGoupTNGqMjXs9t4dwXWa6SMaQropzksYMpeYP/+j
+# We7Ah3+6AwZQjm9kQ/LjzBJhIs138tVQpjQ4bBPRE1kBnp4vFUKvU5oGBaA5I+iI
+# RdJOEo8ttzFy6bWWR+aLKGCN/njSuMqrCnXB9eRfMCm+kgnyf7H//IzduXRTpM2j
+# uEtWZsoT1foV3/aj2+IJHiFcwfFdp11iB8pAmOzwg76fOECZpfLoFOyybZaBXLWs
+# ng/7upkf2OsIpkfng2qaxPo7aj+Ro5XzvxGophuvJ8835BLh3QfWbvFXr2AWtTJV
+# icAwgjcnjSUa4wEZepeOknfS/7ymh/pfJ5/HcdbxAgMBAAGjggHTMIIBzzAMBgNV
 # HRMBAf8EAjAAMA4GA1UdDwEB/wQEAwIHgDA6BgNVHSUEMzAxBgorBgEEAYI3YQEA
 # BggrBgEFBQcDAwYZKwYBBAGCN2HK9PELgrHSgxH33KNOluu6MTAdBgNVHQ4EFgQU
-# WSyJP2y133IY2lX0zY/o+CTjPZkwHwYDVR0jBBgwFoAUa16lNMMFxWJKIVqOq3Ng
-# YtSsY4UwZwYDVR0fBGAwXjBcoFqgWIZWaHR0cDovL3d3dy5taWNyb3NvZnQuY29t
+# lDlLuBZhlAF0s1R0rpcjZip3jMYwHwYDVR0jBBgwFoAUmvFUd3UMhxY3RqCs3nn5
+# 9H/BeOkwZwYDVR0fBGAwXjBcoFqgWIZWaHR0cDovL3d3dy5taWNyb3NvZnQuY29t
 # L3BraW9wcy9jcmwvTWljcm9zb2Z0JTIwSUQlMjBWZXJpZmllZCUyMENTJTIwRU9D
-# JTIwQ0ElMjAwMy5jcmwwdAYIKwYBBQUHAQEEaDBmMGQGCCsGAQUFBzAChlhodHRw
+# JTIwQ0ElMjAwNC5jcmwwdAYIKwYBBQUHAQEEaDBmMGQGCCsGAQUFBzAChlhodHRw
 # Oi8vd3d3Lm1pY3Jvc29mdC5jb20vcGtpb3BzL2NlcnRzL01pY3Jvc29mdCUyMElE
-# JTIwVmVyaWZpZWQlMjBDUyUyMEVPQyUyMENBJTIwMDMuY3J0MFQGA1UdIARNMEsw
+# JTIwVmVyaWZpZWQlMjBDUyUyMEVPQyUyMENBJTIwMDQuY3J0MFQGA1UdIARNMEsw
 # SQYEVR0gADBBMD8GCCsGAQUFBwIBFjNodHRwOi8vd3d3Lm1pY3Jvc29mdC5jb20v
-# cGtpb3BzL0RvY3MvUmVwb3NpdG9yeS5odG0wDQYJKoZIhvcNAQEMBQADggIBANID
-# GvTTpf0rDOW5N9cVRzG6hwsirOn56AKvwUPcaqtZ3yiBI2Y8E8dB6GR8Z5eyKFyw
-# eynqNs4GCp4/cgzSkV6/RylCq482RfHORq5K6FSVS2oytP75rbu/rQrWycTxTbKh
-# xeGfoUMr4Ob0YPtnYPq8fDJaNY4wkgfEaSvFyTX8U88zP8TfGvwdQ9Zz7r2kLthu
-# 8N3Rp2W/lhtjbcCqj6PGN5kbECz0rSHymInDJ2gooGbPzfSOmKt7ASn/jHUqRGcG
-# UMEFNLq9bHXAMA/aeH10ZbkCW3kDYXxaQeg/idz0UL6ejAGhlQvYDQD3JXt9Oy7s
-# /QPotZNDk/CfWKHSBCHQtiQNv3BAY6juaPDu97bNAoboO7UOG0jWT9lLrGGcEX07
-# AXdsKPRJjLyYWJLT/n7KvQjLZZoTiOYeSAX4Re1JDVsOG3mXf6sGthSO0+98rI77
-# cYCHyyHkcvCK2a7MYM5eYp7g2T8RPeqgENM8qw1GC2GSdR0G0BLtiiYimxga6HiO
-# ej1EbGYcXCLZfvSnlPqqgd6Ekl6WKISFsMksfiPiCK893DY0pTL3w+jrmUSOS5i6
-# IcvEv0YcYYE/g/FtxQQJx2Js9kMTm9dGX1BoVUFGNWuZiqU3Gbu5GWhnC6KeIT2o
-# UQHSmHLsvcq6GFcDStUNq56EIHt/OJIANGglUlPpMIIGwDCCBKigAwIBAgITMwAJ
-# 0UzR40y/eUIiAwAAAAnRTDANBgkqhkiG9w0BAQwFADBaMQswCQYDVQQGEwJVUzEe
+# cGtpb3BzL0RvY3MvUmVwb3NpdG9yeS5odG0wDQYJKoZIhvcNAQEMBQADggIBACTh
+# 0JmWfriAlx28CwSOx0kd+LbEXq6pj2cITCzL4H4NXvohJnyVpmNddoiU5+eHazAs
+# WFjqmt/NFqBmZbrOwOxnx754XZ0wACqCw40wAVDqC2ykkBZH2OZ0mQv0i7cOWg5t
+# gnKlc9NYz2jRZfc5jpbg0u18cjwJ9pqyisSMfjtVJvAG+cOVJIuHSDU8YRz9oj6N
+# eKDfB78PfB1oBdJD9RcSgBQxxaYiBO/Qhs1AGP/xZYfWrBV7aYBI09DCM86kvA9z
+# BqV+LDv7tmIooaquJylQzZqmiFZKkZrVo0qSMAqUAyDO+EBGXvZ/FqMACHHHzbVR
+# hWJO/Tjm3K7iClZuJBFKdp88e7BfIXeHSf1zcb9KhRf96oGV7Sema5uYcQlOdtAf
+# IDVYtvDMDncZUVC/eAbD56XZyio0gZ5vMh1uVDLeh2Zu9IS8owY7Cd3p3kko+M90
+# RPH6UExvdVa4KHfsmb63awBxoVFDxAnfK1CPrYovC13SqXsfQneQrOabU3i4WmiQ
+# uvKnL2522vbjaBx+tz7HyKbny8V6ECvX7m1ecyrUOiaqjlb13nUiALsZvkAF9Te6
+# duD3GwdPQ0THR3QtO+yAZtnBgG08NxSIJ7wxy0Kgoee2dmvjtBYwr8NsFItt76Q0
+# HexACe46I+E/hU/xKURVojo4x6wlLqxG4fidcS9HMIIGwDCCBKigAwIBAgITMwAK
+# HaMAsGSnGvpCFAAAAAodozANBgkqhkiG9w0BAQwFADBaMQswCQYDVQQGEwJVUzEe
 # MBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMSswKQYDVQQDEyJNaWNyb3Nv
-# ZnQgSUQgVmVyaWZpZWQgQ1MgRU9DIENBIDAzMB4XDTI2MTExMjAxNTAzMVoXDTI2
-# MTExNTAxNTAzMVowgYMxCzAJBgNVBAYTAk5MMRYwFAYDVQQIEw1Ob29yZC1CcmFi
+# ZnQgSUQgVmVyaWZpZWQgQ1MgRU9DIENBIDA0MB4XDTI2MTExNDAxNDMyOVoXDTI2
+# MTExNzAxNDMyOVowgYMxCzAJBgNVBAYTAk5MMRYwFAYDVQQIEw1Ob29yZC1CcmFi
 # YW50MRIwEAYDVQQHEwlTY2hpam5kZWwxIzAhBgNVBAoTGkpvaG4gQmlsbGVrZW5z
 # IENvbnN1bHRhbmN5MSMwIQYDVQQDExpKb2huIEJpbGxla2VucyBDb25zdWx0YW5j
-# eTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAK5zh09KUzZ88JVA4Zrb
-# MQL/IlPKzS9BKJiHN6TIPzQ3/TIDAfrcgBjvKeYQHEqVx/WrF0L4ywbOM4pxZSA0
-# UKZ0PtCOH2sLOq2qARjfBp1ewIe8AnEFr5W9L5DJ3WWiXPH/AiW22y8OzI4/eqi/
-# GT97FdT7ZUD7ZxNarkqiOnN1Or8d15aEpL1gcT91zzYUAgQ5/Wqj+d5NCmzNU8zL
-# B/Q/WDEqkYqx66jvWaJ/vBmAFYxbeG/dHhmFAzlV+jSlLYIhHRQ/OXBZ7HfXzYCO
-# t1aylo+/SUamOkYiNMISYs86A/KvdqVztFfYJTbPqA6+Q105y0+eAMt5E3rmK5sn
-# T61fFBvOhoa5ApepoPIm8ZIlfVutFMwHUbFpXFWg2uj16fSo4M5on2tHnjhZrIj+
-# 3BrS+83JiZ9XSCxF88KBKUtp8oXqZoW84ctfdqsQMSA3JM5AF6Epqd4cTo66OxfM
-# Py/sPxVSJ4TGLNVILL6CDgxSbeHxvVg0eBwFgSGeeH4mfwIDAQABo4IB0zCCAc8w
+# eTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAI0ZzwDNRxkT/EZBY5fL
+# TS79MXMizThkYbkNmKFwk6KJmulgvHGmaPXjrxGjusVI5UB/p2W+Qwtf5wAkZNGz
+# 3VnGyjJmhgEA+qi81Zf7bcH31eot5d2VU9yTUXDB5nOvh+TdH47xVoiQu4iASLBK
+# 9b9OPhWUuZNGVZMWqnT4LA7ysYR/wBqLqUzRqjI17PbeHcF1mukjGkK6Kc5LGDKX
+# mD//o1nuwId/ugMGUI5vZEPy48wSYSLNd/LVUKY0OGwT0RNZAZ6eLxVCr1OaBgWg
+# OSPoiEXSThKPLbcxcum1lkfmiyhgjf540rjKqwp1wfXkXzApvpIJ8n+x//yM3bl0
+# U6TNo7hLVmbKE9X6Fd/2o9viCR4hXMHxXaddYgfKQJjs8IO+nzhAmaXy6BTssm2W
+# gVy1rJ4P+7qZH9jrCKZH54NqmsT6O2o/kaOV878RqKYbryfPN+QS4d0H1m7xV69g
+# FrUyVYnAMII3J40lGuMBGXqXjpJ30v+8pof6Xyefx3HW8QIDAQABo4IB0zCCAc8w
 # DAYDVR0TAQH/BAIwADAOBgNVHQ8BAf8EBAMCB4AwOgYDVR0lBDMwMQYKKwYBBAGC
 # N2EBAAYIKwYBBQUHAwMGGSsGAQQBgjdhyvTxC4Kx0oMR99yjTpbrujEwHQYDVR0O
-# BBYEFFksiT9std9yGNpV9M2P6Pgk4z2ZMB8GA1UdIwQYMBaAFGtepTTDBcViSiFa
-# jqtzYGLUrGOFMGcGA1UdHwRgMF4wXKBaoFiGVmh0dHA6Ly93d3cubWljcm9zb2Z0
+# BBYEFJQ5S7gWYZQBdLNUdK6XI2Yqd4zGMB8GA1UdIwQYMBaAFJrxVHd1DIcWN0ag
+# rN55+fR/wXjpMGcGA1UdHwRgMF4wXKBaoFiGVmh0dHA6Ly93d3cubWljcm9zb2Z0
 # LmNvbS9wa2lvcHMvY3JsL01pY3Jvc29mdCUyMElEJTIwVmVyaWZpZWQlMjBDUyUy
-# MEVPQyUyMENBJTIwMDMuY3JsMHQGCCsGAQUFBwEBBGgwZjBkBggrBgEFBQcwAoZY
+# MEVPQyUyMENBJTIwMDQuY3JsMHQGCCsGAQUFBwEBBGgwZjBkBggrBgEFBQcwAoZY
 # aHR0cDovL3d3dy5taWNyb3NvZnQuY29tL3BraW9wcy9jZXJ0cy9NaWNyb3NvZnQl
-# MjBJRCUyMFZlcmlmaWVkJTIwQ1MlMjBFT0MlMjBDQSUyMDAzLmNydDBUBgNVHSAE
+# MjBJRCUyMFZlcmlmaWVkJTIwQ1MlMjBFT0MlMjBDQSUyMDA0LmNydDBUBgNVHSAE
 # TTBLMEkGBFUdIAAwQTA/BggrBgEFBQcCARYzaHR0cDovL3d3dy5taWNyb3NvZnQu
 # Y29tL3BraW9wcy9Eb2NzL1JlcG9zaXRvcnkuaHRtMA0GCSqGSIb3DQEBDAUAA4IC
-# AQDSAxr006X9KwzluTfXFUcxuocLIqzp+egCr8FD3GqrWd8ogSNmPBPHQehkfGeX
-# sihcsHsp6jbOBgqeP3IM0pFev0cpQquPNkXxzkauSuhUlUtqMrT++a27v60K1snE
-# 8U2yocXhn6FDK+Dm9GD7Z2D6vHwyWjWOMJIHxGkrxck1/FPPMz/E3xr8HUPWc+69
-# pC7YbvDd0adlv5YbY23Aqo+jxjeZGxAs9K0h8piJwydoKKBmz830jpirewEp/4x1
-# KkRnBlDBBTS6vWx1wDAP2nh9dGW5Alt5A2F8WkHoP4nc9FC+nowBoZUL2A0A9yV7
-# fTsu7P0D6LWTQ5Pwn1ih0gQh0LYkDb9wQGOo7mjw7ve2zQKG6Du1DhtI1k/ZS6xh
-# nBF9OwF3bCj0SYy8mFiS0/5+yr0Iy2WaE4jmHkgF+EXtSQ1bDht5l3+rBrYUjtPv
-# fKyO+3GAh8sh5HLwitmuzGDOXmKe4Nk/ET3qoBDTPKsNRgthknUdBtAS7YomIpsY
-# Guh4jno9RGxmHFwi2X70p5T6qoHehJJeliiEhbDJLH4j4givPdw2NKUy98Po65lE
-# jkuYuiHLxL9GHGGBP4PxbcUECcdibPZDE5vXRl9QaFVBRjVrmYqlNxm7uRloZwui
-# niE9qFEB0phy7L3KuhhXA0rVDauehCB7fziSADRoJVJT6TCCBygwggUQoAMCAQIC
-# EzMAAAAVBT5uGY6TKdkAAAAAABUwDQYJKoZIhvcNAQEMBQAwYzELMAkGA1UEBhMC
+# AQAk4dCZln64gJcdvAsEjsdJHfi2xF6uqY9nCEwsy+B+DV76ISZ8laZjXXaIlOfn
+# h2swLFhY6prfzRagZmW6zsDsZ8e+eF2dMAAqgsONMAFQ6gtspJAWR9jmdJkL9Iu3
+# DloObYJypXPTWM9o0WX3OY6W4NLtfHI8CfaasorEjH47VSbwBvnDlSSLh0g1PGEc
+# /aI+jXig3we/D3wdaAXSQ/UXEoAUMcWmIgTv0IbNQBj/8WWH1qwVe2mASNPQwjPO
+# pLwPcwalfiw7+7ZiKKGqricpUM2apohWSpGa1aNKkjAKlAMgzvhARl72fxajAAhx
+# x821UYViTv045tyu4gpWbiQRSnafPHuwXyF3h0n9c3G/SoUX/eqBle0npmubmHEJ
+# TnbQHyA1WLbwzA53GVFQv3gGw+el2coqNIGebzIdblQy3odmbvSEvKMGOwnd6d5J
+# KPjPdETx+lBMb3VWuCh37Jm+t2sAcaFRQ8QJ3ytQj62KLwtd0ql7H0J3kKzmm1N4
+# uFpokLrypy9udtr242gcfrc+x8im58vFehAr1+5tXnMq1Domqo5W9d51IgC7Gb5A
+# BfU3unbg9xsHT0NEx0d0LTvsgGbZwYBtPDcUiCe8MctCoKHntnZr47QWMK/DbBSL
+# be+kNB3sQAnuOiPhP4VP8SlEVaI6OMesJS6sRuH4nXEvRzCCBygwggUQoAMCAQIC
+# EzMAAAAXJ0UJC4uHr8YAAAAAABcwDQYJKoZIhvcNAQEMBQAwYzELMAkGA1UEBhMC
 # VVMxHjAcBgNVBAoTFU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjE0MDIGA1UEAxMrTWlj
 # cm9zb2Z0IElEIFZlcmlmaWVkIENvZGUgU2lnbmluZyBQQ0EgMjAyMTAeFw0yNjAz
-# MjYxODExMjhaFw0zMTAzMjYxODExMjhaMFoxCzAJBgNVBAYTAlVTMR4wHAYDVQQK
+# MjYxODExMzFaFw0zMTAzMjYxODExMzFaMFoxCzAJBgNVBAYTAlVTMR4wHAYDVQQK
 # ExVNaWNyb3NvZnQgQ29ycG9yYXRpb24xKzApBgNVBAMTIk1pY3Jvc29mdCBJRCBW
-# ZXJpZmllZCBDUyBFT0MgQ0EgMDMwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK
-# AoICAQDg9Ms9AqovDnMePvMOe+KybhCd8+lokzYORlS3kBVXseecbyGwBcsenlm5
-# bLtMGPjiIFLzBQF+ghlVV/U29q5GcdeEEBCHTTGhL2koIrLc4UrliMRcbv9mOMtR
-# /l7/xAmv0Fx4BJHn1dHt37fvrBqXmKjKfGf5DpyO/+hnV7TEreMtS19iO+bjZ/9H
-# npg3PCk0e7YSbRTFkx97FZwRWpC4s3NepRfRXQh/WMAj7JmsYeVZohi4TF5yW2JM
-# rJZqwHcyzJZYtD2Hlno5ZEJkdiZcEaxHOobmwO06Z1J9c23ps9PGIhGaq1sKLEAz
-# 9Doc5rLkYWGteDrscKhAp2kIc/oYlH9Ij6BkOqqgWINEkEtC8ZNG1Mak+h3o65aj
-# 0iQKmdxW7IZaHO5cuyoMi+KtYfXeIIg3sVIbS2EL8kUtsDGdEqNqAq/isqTi1jXq
-# Le6iKp1ni1SPdvPW9G03CTsYF68b/yuIQRwbdoBCXemMNJCS0dorCRY4b2WAAy4n
-# g7SANcEgrBgZf535+QfLU5hGzrKjIpbMabauWb5FKWUKkMsPcXFkXRWO4noKPm4K
-# WlFypqOpbJ/KONVReIlxHQRegAOBzIhRB7gr9IDQ1sc2MgOgQ+xVGW4oq4HD0mfA
-# iwiyLskZrkaQ7JoanYjBNcR9RS26YxAVbcBtLitFTzCIEg5ZdQIDAQABo4IB3DCC
-# AdgwDgYDVR0PAQH/BAQDAgGGMBAGCSsGAQQBgjcVAQQDAgEAMB0GA1UdDgQWBBRr
-# XqU0wwXFYkohWo6rc2Bi1KxjhTBUBgNVHSAETTBLMEkGBFUdIAAwQTA/BggrBgEF
+# ZXJpZmllZCBDUyBFT0MgQ0EgMDQwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK
+# AoICAQCCx2T+Aw9mKgGVzJ+Tq0PMn49G3itIsYpbx7ClLSRHFe1RELdPcZ1sIqWO
+# hsSfy6yyqEapClGH9Je9FXA1cQgZvvpQbkg+QInVLr/0EPrVBCwrM96lbRI2PxNe
+# CwXG9LsyW2hG6KQgintDmNCBo4zpDIr377plVdSliZm6UB7rHwmvBnR02QT6tnrq
+# Wq2ihzB6lRJVTEzuh0OafzIMeMnYM0+x+ve5EOLHdfiq+HXiMf9Jb7YLHtYgyHIi
+# JA7bTWLqFSLGaTh7ZlbxbsLXA91OOroEpv7OjzFuu3tkpC9FflA4Dp2Euq4+qPmx
+# UqfGp+TX0gLRJp9NJOzzILjcTD3rkFFFbxUv1xyg6avivFDLtoKBhM2Td138umE1
+# pNOacanuSYtPHIeQHmB6haFi64avLBLwTTAm/Rbit860cFXR72wq+5Qh4hSmezHq
+# KXERWPpVBe+APrJ4Iqc+aPeMmIkoCWZQO22HnLNFUFSXjiwyIbgvlH/LIAJEqTaf
+# TzxDZgKhlLU7zr6gwsq3WNpcYQI6NuxWnwh3VVDDyF7onQqKs5Ll7bleVN0Y8Vvq
+# gE45ppyBbvwqN/Run5fMCCRz3aYMY0kZhKO92eP7t4zHqZ5bQMAgZ0tE2Pz/jb0w
+# iykUF/PcoOqqk3vVLiRDYst6vd3GEMNzMpUUvQcvBG46+COIbwIDAQABo4IB3DCC
+# AdgwDgYDVR0PAQH/BAQDAgGGMBAGCSsGAQQBgjcVAQQDAgEAMB0GA1UdDgQWBBSa
+# 8VR3dQyHFjdGoKzeefn0f8F46TBUBgNVHSAETTBLMEkGBFUdIAAwQTA/BggrBgEF
 # BQcCARYzaHR0cDovL3d3dy5taWNyb3NvZnQuY29tL3BraW9wcy9Eb2NzL1JlcG9z
 # aXRvcnkuaHRtMBkGCSsGAQQBgjcUAgQMHgoAUwB1AGIAQwBBMBIGA1UdEwEB/wQI
 # MAYBAf8CAQAwHwYDVR0jBBgwFoAU2UEpsA8PY2zvadf1zSmepEhqMOYwcAYDVR0f
@@ -1231,17 +1306,17 @@ exit $exitCode
 # JTIwMjAyMS5jcmwwfQYIKwYBBQUHAQEEcTBvMG0GCCsGAQUFBzAChmFodHRwOi8v
 # d3d3Lm1pY3Jvc29mdC5jb20vcGtpb3BzL2NlcnRzL01pY3Jvc29mdCUyMElEJTIw
 # VmVyaWZpZWQlMjBDb2RlJTIwU2lnbmluZyUyMFBDQSUyMDIwMjEuY3J0MA0GCSqG
-# SIb3DQEBDAUAA4ICAQBdbiI8zwXLX8glJEh/8Q22UMCUhWBO46Z9FPhwOR3mdlqR
-# VLkYOon/MczUwrjDhx3X99SPH5PSflkGoTvnO9ZWHM5YFVYpO7NYuB+mfVSGAGZw
-# iGOASWk0i2B7vn9nElJJmoiXxugfH5YdBsrUgTt0AFNXkzmqTgk+S1Hxb1u/0HCq
-# EHVZPk2A/6eJXYbtpRM5Fcz00jisUl9BRZgSebODV85bBzOveqyC3f0PnHCxRJNh
-# Mb8xP/sB/VI7pf2rheSV7zqUSv8vn/fIMblXeaVIlpqoq8SP9BJMjE/CoVXJxnkZ
-# QRM1Fa7kN9yztvReOhxSgPgpZx/Xl/jkwyEFVJTBfBp3sTgfIc/pmqv2ehtakL2A
-# Ej78EmOPQohxJT3wyX+P78GA25tLpAvzj3RMMHd8z18ZuuVi+60MAzGpOASH1L8N
-# lr3fZRZnQO+pyye2DCvYmHaIfdUgYJqn7noxxGVv89+RaETh1tgCDvwNpFCSG7vl
-# 5A4ako+2fx409r9TWjXC7Oif1IQ5ZJzB4Rf8GvBiHYjvMmHpledp1FGRLdSRFVpC
-# 3/OKpZY6avIqZp7+8pP/WQP903DdgrvAT6W4xPOBxXPa4tGksN3SuqJaiFYHSNye
-# Bufn8iseujW4IbBSbHD4BPqbF3qZ+7nG9d/d/G2/Lx4kH9cCmBfmsZdSkHmukDCC
+# SIb3DQEBDAUAA4ICAQCQdVoZ/U0m38l2iKaZFlsxavptpoOLyaR1a9ZK2TSF1kOn
+# FJhMDse6KkCgsveoiEjXTVc6Xt86IKHn76Nk5qZB0BXv2iMRQ2giAJmYvZcmstoZ
+# qfB2M3Kd5wnJhUJOtF/b6HsqSelY6nhrF06zor1lDmDQixBZcLB9zR1+RKQso1je
+# kNxYuUk+HaN3k1S57qk0O//YbkwU0mELCW04N5vICMZx5T5c7Nq/7uLvbVhCdD7f
+# 2bZpA4U7vOkB1ooB4AaER3pjoJ0Mad5LFyi6Na9p9Zu/hrLeOjU5FItS5Yxsqvlf
+# XxAThJ176CmkYstKRmytSHZ7JhKRfV6e9Zftk/ODb/CK4pGVAVqsOf4337bQGrOH
+# HCQ3IvN9gmnUuDh8JdvbheoWPHxIN1GB5sUiY584tXN7xdD8LCSsRqJvQ8e7a3gZ
+# WTgViugRs1QWq+N0G9Nje6JHlN1CjJehge+H5PGktJja+juGEr0P+ukSkcL6qaZx
+# FQTh3SDI71lvW++3bl/Ezd6SO8N9Udw+reoyvRHCyTiSsplZQSBTVJdPmo3qCpGu
+# yHFtPo5CBn3/FPTiqJd3M9BHoqKd0G9Kmg6fGcAvFwnLNXA2kov727wRljL3ypfq
+# L7iAT/Ynpxul6RwHRlcOf9dDGg1RRvr92NP/CWVXIb68geR2rvU/NsfmtjF1wDCC
 # B54wggWGoAMCAQICEzMAAAAHh6M0o3uljhwAAAAAAAcwDQYJKoZIhvcNAQEMBQAw
 # dzELMAkGA1UEBhMCVVMxHjAcBgNVBAoTFU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjFI
 # MEYGA1UEAxM/TWljcm9zb2Z0IElkZW50aXR5IFZlcmlmaWNhdGlvbiBSb290IENl
@@ -1284,26 +1359,26 @@ exit $exitCode
 # 7Yww94lDf+8oG2oZmDh5O1Qe38E+M3vhKwmzIeoB1dVLlz4i3IpaDcR+iuGjH2Td
 # aC1ZOmBXiCRKJLj4DT2uhJ04ji+tHD6n58vhavFIrmcxghcyMIIXLgIBATBxMFox
 # CzAJBgNVBAYTAlVTMR4wHAYDVQQKExVNaWNyb3NvZnQgQ29ycG9yYXRpb24xKzAp
-# BgNVBAMTIk1pY3Jvc29mdCBJRCBWZXJpZmllZCBDUyBFT0MgQ0EgMDMCEzMACdFM
-# 0eNMv3lCIgMAAAAJ0UwwDQYJYIZIAWUDBAIBBQCgXjAQBgorBgEEAYI3AgEMMQIw
-# ADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAvBgkqhkiG9w0BCQQxIgQglBdL
-# h21lrU1V2W/CJUi3ZDkGpaKihAV/r+296pxiisEwDQYJKoZIhvcNAQEBBQAEggGA
-# D4EXXz/5jFnr7acyQqx8fy6V4EjpmpF6cIQi0I206FQBLF8CNA+TIy+YBqbVFbX8
-# GDChQvXfVSIF92iSuhPdHTj9MDQlM0bPcZWI1DKo1CLkGuRq8YLl1z5QrHoq3OOs
-# 7+b+0Ii9DQVKjcXIrFGg2aZXk6flBMuksur7VNC3mmqU+NTUQ+Miv067CwSnn08z
-# Q5rgTdVwzbKVhJ4PbEB1Q729vzmG9UMJ3xL8WDjQp99awgLvAk4/GKHhSNldP5f4
-# ya1nkQJl0VK9QR8991u84SPNYM9SI/Hdks69eKWp+WB/l3PkHdMtu4V0JyCH0loq
-# 5Bew201FmS9XiklT0mAAU7WYcl3Xmj4Od1RnKHmzCGW9Eq6O7Nn0S23NRftLg0jL
-# pC1pDBXmHruQNmDtSVRFJKvt5TKxXqL/4b6TW/RlNv9wZm6njpj+fjJjUKZ6ONqT
-# GDlTiE2spI9pklVwKx1cC/HJyrpaUjbCAsnoheVSy+bj7I3oQqenWZ/Wkt7EXatV
+# BgNVBAMTIk1pY3Jvc29mdCBJRCBWZXJpZmllZCBDUyBFT0MgQ0EgMDQCEzMACh2j
+# ALBkpxr6QhQAAAAKHaMwDQYJYIZIAWUDBAIBBQCgXjAQBgorBgEEAYI3AgEMMQIw
+# ADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAvBgkqhkiG9w0BCQQxIgQgaCzd
+# vlkxtyxIMzV7OwFuQoEq0kbDeAf2LYgrqnzmWiowDQYJKoZIhvcNAQEBBQAEggGA
+# EPpX8ytfrlTkkwtm+gAPLzL05Jipgg2oknVDHilJUwAG71L4wJhSLSCrMhw1Nrcb
+# OAfs9IHtReC2qCKsbdTfDZVcbNFThNl5V7lHrqT/r7m+agfWRYVM0m72Oi2Yv10x
+# iqLkkK+Nmjcml4pcWf9xjmvaHy7KYDrF7wu7b4ry/2zBAGxcafx2WvvQPyNwOh3z
+# HoH5F3vm7bN15wvubZfcvcsnLqP8UiiqOS3jd8zEA6TZf49k2TnEUW6hqFgJuMjT
+# WV/UpGiI8+FTNmX/O+vsKlHCm+IX5dtvLeWpsMU2lApTjuC3JrvHif6gAsUVPlYi
+# Fm9O47rGmvj554hU31ReRSSLteJ1Vo/7Ta/s5/nSOYk4ooWEpxcDnD9ExBHlRy09
+# r62GmuBnmVqqZu3bhYAMkppcjZ0Gn7EElsCE5qgTofszbnkCoPXHv3o0mrXanqMp
+# PKhmrn5mgY7BtZEzTqzKc8cOXtOPov8RwxldyZVQfuuJbftXQM9kjPcCqKYEEOMI
 # oYIUsjCCFK4GCisGAQQBgjcDAwExghSeMIIUmgYJKoZIhvcNAQcCoIIUizCCFIcC
 # AQMxDzANBglghkgBZQMEAgEFADCCAWoGCyqGSIb3DQEJEAEEoIIBWQSCAVUwggFR
-# AgEBBgorBgEEAYRZCgMBMDEwDQYJYIZIAWUDBAIBBQAEIL6Hvv8UBzLabsVQBERr
-# 8s+t4N/J0G1J78dmR/pDa/icAgZq80skNsgYEzIwMjYxMTEzMTUzMDExLjA3Nlow
+# AgEBBgorBgEEAYRZCgMBMDEwDQYJYIZIAWUDBAIBBQAEIOrTML7hNy3jpr36ddQ3
+# 6F8YmLOW/R7ygBnchh53tU54AgZq80tw/uQYEzIwMjYxMTE1MTQwMzA1LjI3NFow
 # BIACAfSggemkgeYwgeMxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9u
 # MRAwDgYDVQQHEwdSZWRtb25kMR4wHAYDVQQKExVNaWNyb3NvZnQgQ29ycG9yYXRp
 # b24xLTArBgNVBAsTJE1pY3Jvc29mdCBJcmVsYW5kIE9wZXJhdGlvbnMgTGltaXRl
-# ZDEnMCUGA1UECxMeblNoaWVsZCBUU1MgRVNOOjdBMUEtMDVFMC1EOTQ3MTUwMwYD
+# ZDEnMCUGA1UECxMeblNoaWVsZCBUU1MgRVNOOjQ5MUEtMDVFMC1EOTQ3MTUwMwYD
 # VQQDEyxNaWNyb3NvZnQgUHVibGljIFJTQSBUaW1lIFN0YW1waW5nIEF1dGhvcml0
 # eaCCDykwggeCMIIFaqADAgECAhMzAAAABeXPD/9mLsmHAAAAAAAFMA0GCSqGSIb3
 # DQEBDAUAMHcxCzAJBgNVBAYTAlVTMR4wHAYDVQQKExVNaWNyb3NvZnQgQ29ycG9y
@@ -1345,28 +1420,28 @@ exit $exitCode
 # k4MhF/KgaXn0GxdH8elEa2Imq45gaa8D+mTm8LWVydt4ytxYP/bqjN49D9NZ81co
 # E6aQWm88TwIf4R4YZbOpMKN0CyejaPNN41LGXHeCUMYmBx3PkP8ADHD1J2Cr/6tj
 # uOOCztfp+o9Nc+ZoIAkpUcA/X2gSMkgHAPUvIdtoSAHEUKiBhI6JQivRepyvWcl+
-# JYbYbBh7pmgAXVswggefMIIFh6ADAgECAhMzAAAAW0q1jUEybdx0AAAAAABbMA0G
+# JYbYbBh7pmgAXVswggefMIIFh6ADAgECAhMzAAAAWvYNZ4yF7d0IAAAAAABaMA0G
 # CSqGSIb3DQEBDAUAMGExCzAJBgNVBAYTAlVTMR4wHAYDVQQKExVNaWNyb3NvZnQg
 # Q29ycG9yYXRpb24xMjAwBgNVBAMTKU1pY3Jvc29mdCBQdWJsaWMgUlNBIFRpbWVz
-# dGFtcGluZyBDQSAyMDIwMB4XDTI2MDEwODE4NTkwNVoXDTI3MDEwNzE4NTkwNVow
+# dGFtcGluZyBDQSAyMDIwMB4XDTI2MDEwODE4NTkwM1oXDTI3MDEwNzE4NTkwM1ow
 # geMxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9uMRAwDgYDVQQHEwdS
 # ZWRtb25kMR4wHAYDVQQKExVNaWNyb3NvZnQgQ29ycG9yYXRpb24xLTArBgNVBAsT
 # JE1pY3Jvc29mdCBJcmVsYW5kIE9wZXJhdGlvbnMgTGltaXRlZDEnMCUGA1UECxMe
-# blNoaWVsZCBUU1MgRVNOOjdBMUEtMDVFMC1EOTQ3MTUwMwYDVQQDEyxNaWNyb3Nv
+# blNoaWVsZCBUU1MgRVNOOjQ5MUEtMDVFMC1EOTQ3MTUwMwYDVQQDEyxNaWNyb3Nv
 # ZnQgUHVibGljIFJTQSBUaW1lIFN0YW1waW5nIEF1dGhvcml0eTCCAiIwDQYJKoZI
-# hvcNAQEBBQADggIPADCCAgoCggIBAJBUzBbbnlDXee0B0KD5G4/475thFyfctCyu
-# ESTWQXvlLi4Wx/td2qUdeq4ideeg6VWhiOHfu3wJV4TUGSRtqh9Ccr1BmiBKv9iu
-# FpgHyIBu5Qx38ZsxwlFeXVS+ZqJJKnXRbDNQdcYSoC/6c0hQJ/PH50DBRDQkPXVw
-# yFizLrRH9AlrJeUg7BKeT23zftS8/KOJLvEEbHOF6pSOY3ZVprZUWbWjWwRTmoHa
-# Q/E8vrWtLNyEJ+b089VW1Ikra3t4GTB5Wby3CL1K2zYnAxBIvafsKMFyj9OuXHcT
-# PKMDoFSMeamG9MKOMb6uoG1PjdnDgsLP6EOMRSzrLL7jED1mbB9RSd9fhty+HQr6
-# vZgsBn6oUy+YTpNVLskwdtUM82WYAkPztlOt3AiL0qyV7/U3j/uq3vHMjPM0w034
-# 0M57Nei0g4BCcMt0dbqoc91VgCb3/36sHQANontn1HOF2oLk8190QRS43isHVra8
-# H8sf5+GlqIYsYiCKX04HZiOzZW826nVI6d++8lyTeWmpj90Ua9uPbJhVjwE3oh6t
-# O510ySqmSMSLEN07p3Ibe3E6BAb2w93rWzb26+dpSthbKF4kApofqBsWPX4MEtHK
-# SOftPmVTCQ47tghrVuHia9jY+Hsj01m4KW4WtkmVm3L6hMZECMa4sjMxAXz+bX/A
-# JhWTe6TZAgMBAAGjggHLMIIBxzAdBgNVHQ4EFgQU7/LqUlWWYhXJdXwgYKx4b8Gv
-# 0rYwHwYDVR0jBBgwFoAUa2koOjUvSGNAz3vYr0npPtk92yEwbAYDVR0fBGUwYzBh
+# hvcNAQEBBQADggIPADCCAgoCggIBAO/0O0eWjgUb9rnHcQLRdfWPN4H+91a3Ynla
+# P46E1m4uD+JKx6csWMStX79fxLJUAqHJqQWE19UlNMhS9jEB32dAJ4yuWsHyUuM+
+# dphjDz4E5jl4gYGZEmaOrKvNt+KqlFayyg/oTg3BlLRu4aBq8668A5qlHcfsuh6D
+# dSqFID1ixJFZzHrZFG1iGBG7U1Bn2ONLDo7jbwX5rMcPduTAUw/c7M3WhSxQBuZp
+# Qiz8RQGKIqCKfIxgQkKdzpCpU0SWQOE/DgTXbz3c15KMRCdkGlL2zb+lnuSV4sse
+# Qm3qflZiZckLyn2xJI8ZXDkq+Ig+b/rsPPIfI8di228WvK1j67JXpyeVCaSUO9Er
+# zlLnTrnjQkeXVQIp73xuVBVrmvoTf/v4a7MnrmuKSyIXc5vJUHEGB345+O8omFt1
+# w8b+Xg9D9PKIRqDPEv7HRk0C+Yvxu8FvHJvSocSIZK+v/FmKFOipYnpP76yAmJNn
+# yheucShOgk8QiU53USn/+AyMb7xW905gZnyNqb29HeVdQ175pDHJGEz8Cx5wiHeV
+# liGz5hABucFDylR9z3LSTmB6+3ZuIxeG9BZS46P6ANPkuVuD5m8wgc7GLLzg73Cs
+# DF09ukt8Uf8dTcMBX3ro+7/k9M6Xt8WPG7IL9v/4DvyMY03tkb9Y9Ri6HWavXRPY
+# RCUePspPAgMBAAGjggHLMIIBxzAdBgNVHQ4EFgQUjmOyQ6twMcP1ZbRytJxI4fnX
+# mcIwHwYDVR0jBBgwFoAUa2koOjUvSGNAz3vYr0npPtk92yEwbAYDVR0fBGUwYzBh
 # oF+gXYZbaHR0cDovL3d3dy5taWNyb3NvZnQuY29tL3BraW9wcy9jcmwvTWljcm9z
 # b2Z0JTIwUHVibGljJTIwUlNBJTIwVGltZXN0YW1waW5nJTIwQ0ElMjAyMDIwLmNy
 # bDB5BggrBgEFBQcBAQRtMGswaQYIKwYBBQUHMAKGXWh0dHA6Ly93d3cubWljcm9z
@@ -1375,36 +1450,36 @@ exit $exitCode
 # JQEB/wQMMAoGCCsGAQUFBwMIMA4GA1UdDwEB/wQEAwIHgDBmBgNVHSAEXzBdMFEG
 # DCsGAQQBgjdMg30BATBBMD8GCCsGAQUFBwIBFjNodHRwOi8vd3d3Lm1pY3Jvc29m
 # dC5jb20vcGtpb3BzL0RvY3MvUmVwb3NpdG9yeS5odG0wCAYGZ4EMAQQCMA0GCSqG
-# SIb3DQEBDAUAA4ICAQAAH+zd+XKh4OxXYMWFmtgilXAQGctOjCUB1w/uBiC/OXcH
-# 3Ia4/XbdUhKzFbaiTbIE6vYZKd1p4u7nKOLkawymAMVyuO7LSl6rLKttZIyLhWjT
-# K0zXOz0u4xLq9+bRtBEKJvA6sD5nJwH1IO6z1YizyuIRoalMCnbrUixfWxQn4TAm
-# N7t9uk+X2FUThEa3ewzRwhtG+xwaAbLMkxRmR24JnfXd1VxKo90+m7Wzuov96Uug
-# x5wZdewiIIm1ZWTj4lCJHup679LcOa7tAxJMipVaSltQH9fm9TOKczlfxtWuBcLU
-# 4duZfqwgsILsH7PMkcX1zwQzQD0yAtPhnYz9KNG125bX+iilOe1S8RHqv2bbBpMp
-# ao4kcUvQI6dMgKRvFmm1eLbhSNOQplDMTGD1tNVdNGkI96jUu+troUjWMMi46TQf
-# BAHxtDTpRhIu/87vAVQ8Z6RHhFxesz4Ed5JThaIQRAy6GcO/Jk+QzDzoZ0arRIkI
-# sGJ7rZgOVAjx9ctfw8lH9RfjcwB3wdGBYNMNVJqQpUai2Taddf5pXzTZEHIqLEF5
-# 3SrBjIeInoQrP7U5VlXiMQsxewLdINrAE2l2TR3KBikb+RQRygbTp8jj2yiC0NCU
-# wG+K+ndglN5RMbXjFW6aKa59Xq+b8XzK/DK+AJtgOpHgJv8Qrk62A+twOVLOpjGC
+# SIb3DQEBDAUAA4ICAQCAlM8r+t3hIb2h1lDTAx+iYkQlxFuU7QONeyIFIBZ29xvG
+# l8pehKxErDzIniOpIX/eluUAwQKoaI0zwuKAdR0mrSHXCniMoLNko5W+5r7sXNam
+# KX7QMV3BfGOX3gi9qVfxyUe7AHXbqQ8KBQHNYCnNFtQQHgARrlYhtyAKol5ctM0C
+# Ac/y3oY7bTMsVJvnA5u7DVWPeXoST2KEMDeLBvJYq0IJZ6yMpDOWLZ4UP82bksyS
+# hIB/XdawirIGLdseudryRxVMk313mAcjGRb59+Ittt6otVvYQWqH+PGrTUzEcez8
+# aQuO3umoNZjKuFoX5VsPP/gSZse+orhG3zfZk9IDyE3DfUFrhvkv6H0tijK1D0uI
+# GhwMBWSm9ktQ6oeU+aurZFx3MI+LODnHsbRFZAy11uMvwKq+ZNC1Se4tIM1u9piW
+# AhnTPoh6mULKikHOVhHaO953tkzDCtjsse5GUKOx9yg9nqHKWMgnODp62/uPPzC/
+# yDEISrXCcU7UB7tATr3zWNEdtM4d009iXWI6dV/SdcIIX44rpoLyCLw+nXjxp+fY
+# /dygLO7UdSQaVaUFVj3K2nVyuujPspt5Lunc5FvuYPqmi/z8kASmmwbiF+W0P0UT
+# WFaC84MWfU2h6MDg5s0oxmdNFK76jXr3wZfdSoV7FCKfq5GdeGoy5UwDQwMC0DGC
 # A9QwggPQAgEBMHgwYTELMAkGA1UEBhMCVVMxHjAcBgNVBAoTFU1pY3Jvc29mdCBD
 # b3Jwb3JhdGlvbjEyMDAGA1UEAxMpTWljcm9zb2Z0IFB1YmxpYyBSU0EgVGltZXN0
-# YW1waW5nIENBIDIwMjACEzMAAABbSrWNQTJt3HQAAAAAAFswDQYJYIZIAWUDBAIB
+# YW1waW5nIENBIDIwMjACEzMAAABa9g1njIXt3QgAAAAAAFowDQYJYIZIAWUDBAIB
 # BQCgggEtMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAvBgkqhkiG9w0BCQQx
-# IgQgrzUonVMLJQ/hxOPMZ6EC9Ze9KBtHh6cSMRqF88sWtn0wgd0GCyqGSIb3DQEJ
-# EAIvMYHNMIHKMIHHMIGgBCAvMQNVXZ0b0xxlGw8X/3IEybObuT6a5W1d61CW+cGD
-# 7zB8MGWkYzBhMQswCQYDVQQGEwJVUzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBv
+# IgQgDMzQBP0u+QRTWQc58+qlYXkT796eIoUi5Me+VhZerl4wgd0GCyqGSIb3DQEJ
+# EAIvMYHNMIHKMIHHMIGgBCBiuWRAi+p96PRsBt3TwW3jNozgPQS+Qco1CVm/NaU0
+# QzB8MGWkYzBhMQswCQYDVQQGEwJVUzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBv
 # cmF0aW9uMTIwMAYDVQQDEylNaWNyb3NvZnQgUHVibGljIFJTQSBUaW1lc3RhbXBp
-# bmcgQ0EgMjAyMAITMwAAAFtKtY1BMm3cdAAAAAAAWzAiBCB5s4Bj7jh6IChikWse
-# 9u/ViWvNeVMY2IEo1lHtUkcGIjANBgkqhkiG9w0BAQsFAASCAgB0Zl/QYyLhwWPT
-# NdOoemSI48nngcFn8v3relehZnLvk6ryiL17UQUhVkSP5hdGwjEn3ZERQfCWO2Fx
-# HvFuHTM/QsdXYLPxZbRUZmoSF8PoHyPrD9z0Ogxk5SNFkaetJNKNlWOzYuX7o0kD
-# R5UyNx+fB3YJw1jIpMo1rdeLMz2MSBysupQSAXoJ4zUAjfEXjsEc9SdIzgtZKTUH
-# Pq+0HNN7wlH0mIHPpiXrPQI89NxKglUoWiyq1fmxdotBxQqcyW1Qnkx2yQsNIwJc
-# Tc0YxFVkswBKY6T/sTSez84tUR50/jTkj7VcCTBJolThLa4R2ZCM+JYES2EI9mpz
-# 3NwiIUKZMFFRH7czk5vhy/QKG3CM1TJgoCR/I0I672qKd0CM7c+oDAdl1x7VceH9
-# C7FxSCaOEREZI3lSOW2ciHED6MWcmZToM6tUnK17/qFm+66kM1uNRiZnBUMia/Yd
-# ew6g6qmd0UeIC/aO/ar/d3LFY7QDp3GskincHncZpldg/Uc7I2kbP87YbiGJx2nV
-# 3CAdxhzBSMHsDS+jA4F0EdTKWuaPRgd3BsjQknpStmAzHzSwaRT3CA5Tm+oG1lx0
-# 3P8zqnbd1SP/5Bkp2wXXABGZoZyX2bFVvl8Yzf+VwToe29BVIOG2PqAcgovARC14
-# erWkw9smcd9a315GQas6ZqiKDuRlMg==
+# bmcgQ0EgMjAyMAITMwAAAFr2DWeMhe3dCAAAAAAAWjAiBCB3pAPd2D+ZmqvE7dqK
+# O03T6+NLmRQsKXarO/zookvWEjANBgkqhkiG9w0BAQsFAASCAgBb8PSVogaqt6On
+# bVKgW/Enu31Tvr3TjE7y2Uducpz+O9hFM7n/KcG2iPnmS83u3jy7ETQEkRZp28df
+# cqNtloaiOrH9TlnOpeJk5IDZs5eSfrG7OIOsfrNoDpeBBTlfHIRMKD8Ysh8Rhxzb
+# U33jNMvOKwGuTkgrunbVvwO+fiMkIN7F/sFGcsSakHxAFweyCNq4KRzif8vH1tlC
+# q+WsyuiSsKizStZ40Bo58XlAfv3LWyIjNuLfuNmDWTUyKUFxSAQ3XYGev6Jfs4cF
+# Ipby2MvTkL1mT5Ug/36V340lI50R0gwjUNvf/SVTIQ5e1/tHqZlAYiLRRB4vg0tH
+# YfRSq+TztYSYcs4S4zb+uojQmLLT7V1fInZPaF0lX2cxUa4uhoZ8Av1BbyVdf96h
+# hiCO9OQ1j0yNhHchJQMAurtI27srHSNrlg1Dx1nmXPzoiJHYonVx7Bfv2y/Q6Fv1
+# 97eXAYl4xfuyMwp2ftnriP4hwJETA7q8U/f7OGKgHlFS7Oxw5fzXeZIQmJ2mEtaS
+# FMY/py1a3IBPBL0kxInkFuJoFkWt2Ao6zwqYooMcQjREP0XZ33xnYmAEOa/mY2if
+# qxusPI/I5v71Yf1K6lhQnRuKIrIxhW6pSAAe0a13IIYdQB9kHCHtPJeaOGXzT1Id
+# X4xr5Qv6MKLuszOSjTK5hfw+EoMJZg==
 # SIG # End signature block

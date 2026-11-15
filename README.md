@@ -640,7 +640,8 @@ Imported items can change registry values, disable services and delete files, so
 is only imported without an explicit acknowledgement when all of these hold:
 
 - its catalog entry has a `sha256`,
-- it was requested from the app's own origin or a [trusted host](#trusted-hosts),
+- the catalog listing it is itself on the app's own origin or a [trusted host](#trusted-hosts),
+- it was requested from the app's own origin or a trusted host,
 - and, after any redirects, it was still served from such a host.
 
 Everything else asks for confirmation first. If the downloaded file does not match the

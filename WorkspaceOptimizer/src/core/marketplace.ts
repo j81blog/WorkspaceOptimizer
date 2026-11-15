@@ -296,6 +296,34 @@ function networkError(url: string): MarketplaceError {
   )
 }
 
+/**
+ * Read a response body, giving up once it passes MAX_ENTRY_BYTES. Content-Length is
+ * optional and set by the server, so it cannot be what bounds the download.
+ */
+async function readCapped(res: Response): Promise<string> {
+  const tooLarge = () => new MarketplaceError('That catalog entry is too large to load.', 'too-large')
+  if (!res.body) {
+    const text = await res.text()
+    if (text.length > MAX_ENTRY_BYTES) throw tooLarge()
+    return text
+  }
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let text = ''
+  let bytes = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    bytes += value.byteLength
+    if (bytes > MAX_ENTRY_BYTES) {
+      await reader.cancel()
+      throw tooLarge()
+    }
+    text += decoder.decode(value, { stream: true })
+  }
+  return text + decoder.decode()
+}
+
 async function fetchTextAt(url: string, signal?: AbortSignal): Promise<{ text: string; finalUrl: string }> {
   let res: Response
   try {
@@ -311,10 +339,7 @@ async function fetchTextAt(url: string, signal?: AbortSignal): Promise<{ text: s
   if (Number.isFinite(declared) && declared > MAX_ENTRY_BYTES) {
     throw new MarketplaceError('That catalog entry is too large to load.', 'too-large')
   }
-  const text = await res.text()
-  if (text.length > MAX_ENTRY_BYTES) {
-    throw new MarketplaceError('That catalog entry is too large to load.', 'too-large')
-  }
+  const text = await readCapped(res)
   // A single-page host answers an unknown path with 200 and its index.html, so a
   // wrong URL never surfaces as a 404. Catch it here rather than letting the XML or
   // JSON parser report a baffling syntax error about the app's own markup.
@@ -432,15 +457,18 @@ export async function fetchEntryXml(entry: MarketplaceEntry, signal?: AbortSigna
 /**
  * Fetch one entry and decide whether it may skip the confirmation prompt.
  *
- * `trusted` needs all three: a known-good checksum in the catalog, a trusted
- * starting URL, and a trusted final URL. The last matters because fetch follows
- * redirects, so a trusted host can hand the request to any other host.
+ * `trusted` needs all four: a known-good checksum in the catalog, a trusted catalog,
+ * a trusted starting URL, and a trusted final URL. The catalog matters because the
+ * checksum comes from it, so an untrusted catalog could otherwise vouch for any file
+ * on a trusted host. The final URL matters because fetch follows redirects, so a
+ * trusted host can hand the request to any other host.
  */
 export async function fetchEntry(
   entry: MarketplaceEntry,
   signal?: AbortSignal
 ): Promise<{ xml: string; trusted: boolean }> {
-  const url = resolveEntryUrl(entry.url, entry.catalogUrl || marketplaceUrl)
+  const catalogUrl = entry.catalogUrl || marketplaceUrl
+  const url = resolveEntryUrl(entry.url, catalogUrl)
   const { text, finalUrl } = await fetchTextAt(url, signal)
 
   if (entry.sha256 && (await hashText(text)) !== entry.sha256) {
@@ -451,6 +479,6 @@ export async function fetchEntry(
   }
 
   const origin = location.origin
-  const trusted = !!entry.sha256 && isTrustedSource(url, origin) && isTrustedSource(finalUrl, origin)
+  const trusted = !!entry.sha256 && [catalogUrl, url, finalUrl].every(u => isTrustedSource(u, origin))
   return { xml: text, trusted }
 }
