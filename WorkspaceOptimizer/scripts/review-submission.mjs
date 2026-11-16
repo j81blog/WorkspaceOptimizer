@@ -15,6 +15,7 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
+import { JSDOM } from 'jsdom'
 import { discoverFiles, readXmlFile, relPath } from './catalog-lib.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -78,17 +79,22 @@ if (!files.length) {
 let broken = 0
 let flagged = 0
 
-/** Pull each <Item> block out; regex is enough for a report and keeps this dependency-free. */
-function items(xml) {
-  return [...xml.matchAll(/<Item>([\s\S]*?)<\/Item>/g)].map(m => m[1])
+const TYPE_NAMES = {
+  registry: 'Registry', service: 'Service', scheduledtask: 'ScheduledTask',
+  storeapp: 'StoreApp', powershell: 'PowerShell', filefolder: 'FileFolder'
 }
-function field(block, name) {
-  const m = block.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`))
-  return m ? m[1].trim() : ''
+
+/**
+ * Elements under `el` with this name, at any depth and in any case. The editor reads an
+ * item's fields at any depth and the deployment script ignores case, so this has to be
+ * at least as lenient as both or an item could run without being listed here.
+ */
+function all(el, name) {
+  const want = name.toLowerCase()
+  return [...el.getElementsByTagName('*')].filter(e => e.localName.toLowerCase() === want)
 }
-function cdata(block, name) {
-  const m = block.match(new RegExp(`<${name}>\\s*(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?\\s*</${name}>`))
-  return m ? m[1].trim() : ''
+function field(el, name) {
+  return all(el, name)[0]?.textContent.trim() ?? ''
 }
 
 for (const file of files) {
@@ -107,40 +113,59 @@ for (const file of files) {
     continue
   }
 
+  console.log(`  sha256: ${meta.sha256}`)
   console.log(`  ${meta.name || "(no name)"}: ${meta.itemCount} items, by ${meta.author || '(no author)'}`)
   if (meta.description) console.log(`  ${meta.description}`)
 
-  const xml = readFileSync(file.absPath, 'utf-8')
+  let doc
+  try {
+    doc = new JSDOM(readFileSync(file.absPath, 'utf-8'), { contentType: 'application/xml' }).window.document
+  } catch (err) {
+    console.error(`  error  is not well-formed XML (${err.message})`)
+    broken++
+    continue
+  }
+
   const byType = {}
   const notes = []
+  const itemEls = all(doc, 'Item')
 
-  for (const block of items(xml)) {
-    const type = field(block, 'Type') || 'Unknown'
+  if (itemEls.length !== meta.itemCount) {
+    notes.push({
+      level: 'review',
+      text: `the catalog counts ${meta.itemCount} items but the file parses to ${itemEls.length}; look for commented-out or disguised <Item> tags`
+    })
+  }
+
+  for (const item of itemEls) {
+    const rawType = field(item, 'Type')
+    const type = TYPE_NAMES[rawType.toLowerCase()] ?? (rawType || 'Unknown')
     byType[type] = (byType[type] ?? 0) + 1
-    const name = field(block, 'Name') || '(unnamed)'
+    const name = field(item, 'Name') || '(unnamed)'
 
-    if (type === 'PowerShell') {
-      const script = cdata(block, 'Script')
+    // Payloads are reported by what the item contains, not by what its <Type> claims.
+    for (const ps of all(item, 'PowerShell')) {
+      const script = all(ps, 'Script').map(s => s.textContent).join('\n').trim()
       const hits = SCRIPT_PATTERNS.filter(([re]) => re.test(script)).map(([, label]) => label)
       // Any PowerShell is worth reading; the hits say why it is urgent.
       notes.push({
         level: hits.length ? 'review' : 'note',
         text: `PowerShell "${name}"${hits.length ? ": " + hits.join(', ') : ''}`,
-        detail: script.split('\n').slice(0, 6).map(l => '        ' + l.trim()).join('\n')
+        detail: script.split('\n').map(l => '        ' + l.trimEnd()).join('\n')
       })
     }
 
-    if (type === 'FileFolder') {
-      const path = field(block, 'Path')
-      const action = field(block, 'Action')
+    for (const ff of all(item, 'FileFolder')) {
+      const path = field(ff, 'Path')
+      const action = field(ff, 'Action')
       if (SENSITIVE_PATHS.some(re => re.test(path))) {
         notes.push({ level: 'review', text: `${action} on a system location: ${path} ("${name}")` })
       }
     }
 
-    if (type === 'Registry') {
-      const path = field(block, 'Path')
-      const action = field(block, 'Action')
+    for (const reg of all(item, 'Registry')) {
+      const path = field(reg, 'Path')
+      const action = field(reg, 'Action')
       const hit = SENSITIVE_KEYS.find(([re]) => re.test(path))
       if (action === 'DeleteKeyRecursively') {
         notes.push({ level: 'review', text: `recursive registry delete: ${path} ("${name}")` })

@@ -67,6 +67,9 @@ if (!existsSync(CATALOG)) {
           if (e.kind && e.kind !== 'template' && e.kind !== 'snippet') {
             errors.push(`${at} has kind "${e.kind}"; expected "template" or "snippet".`)
           }
+          if (e.sha256 !== undefined && !(typeof e.sha256 === 'string' && /^[0-9a-f]{64}$/.test(e.sha256))) {
+            errors.push(`${at} has a sha256 that is not 64 lowercase hex characters.`)
+          }
           if (typeof e.id === 'string' && e.id.trim()) {
             const prev = seen.get(e.id)
             if (prev !== undefined) errors.push(`Duplicate entry id "${e.id}" (entries[${prev}] and ${at}).`)
@@ -103,6 +106,9 @@ if (existsSync(CATALOG)) {
     if (!xml.ok) {
       errors.push(`Entry "${e.id ?? url}" points at ${url}, which ${xml.error}.`)
       continue
+    }
+    if (e.sha256 !== undefined && e.sha256 !== xml.sha256) {
+      errors.push(`Entry "${e.id ?? url}" has a sha256 that does not match ${url}. Run: npm run catalog:sync`)
     }
     if (typeof e.itemCount === 'number' && e.itemCount !== xml.itemCount) {
       warnings.push(`Entry "${e.id ?? url}" claims ${e.itemCount} items; ${url} has ${xml.itemCount}. Run: npm run catalog:sync`)

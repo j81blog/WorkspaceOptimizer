@@ -21,6 +21,8 @@ export interface MarketplaceEntry {
   tags: string[]
   itemCount: number | null
   url: string             // as written in the index; resolve with resolveEntryUrl
+  /** Lowercase hex SHA-256 of the file (see hashText). Without it the entry is never trusted. */
+  sha256?: string
 
   /** Index this entry came from. Set when merging, so entries stay distinguishable. */
   catalogUrl: string
@@ -54,7 +56,7 @@ export interface MergedCatalog {
   updated: string
 }
 
-export type MarketplaceErrorKind = 'network' | 'http' | 'parse' | 'too-large' | 'not-found'
+export type MarketplaceErrorKind = 'network' | 'http' | 'parse' | 'too-large' | 'not-found' | 'checksum'
 
 export class MarketplaceError extends Error {
   constructor(message: string, public kind: MarketplaceErrorKind, public status?: number) {
@@ -272,7 +274,8 @@ export function normalizeIndex(raw: unknown, catalogUrl = ''): MarketplaceIndex 
       author: str(e.author),
       category: str(e.category),
       tags: Array.isArray(e.tags) ? e.tags.map(str).filter(Boolean) : [],
-      itemCount: typeof e.itemCount === 'number' ? e.itemCount : null
+      itemCount: typeof e.itemCount === 'number' ? e.itemCount : null,
+      sha256: /^[0-9a-f]{64}$/i.test(str(e.sha256)) ? str(e.sha256).toLowerCase() : undefined
     })
   }
 
@@ -293,7 +296,35 @@ function networkError(url: string): MarketplaceError {
   )
 }
 
-async function fetchText(url: string, signal?: AbortSignal): Promise<string> {
+/**
+ * Read a response body, giving up once it passes MAX_ENTRY_BYTES. Content-Length is
+ * optional and set by the server, so it cannot be what bounds the download.
+ */
+async function readCapped(res: Response): Promise<string> {
+  const tooLarge = () => new MarketplaceError('That catalog entry is too large to load.', 'too-large')
+  if (!res.body) {
+    const text = await res.text()
+    if (text.length > MAX_ENTRY_BYTES) throw tooLarge()
+    return text
+  }
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let text = ''
+  let bytes = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    bytes += value.byteLength
+    if (bytes > MAX_ENTRY_BYTES) {
+      await reader.cancel()
+      throw tooLarge()
+    }
+    text += decoder.decode(value, { stream: true })
+  }
+  return text + decoder.decode()
+}
+
+async function fetchTextAt(url: string, signal?: AbortSignal): Promise<{ text: string; finalUrl: string }> {
   let res: Response
   try {
     res = await fetch(url, { cache: 'no-cache', redirect: 'follow', signal })
@@ -308,10 +339,7 @@ async function fetchText(url: string, signal?: AbortSignal): Promise<string> {
   if (Number.isFinite(declared) && declared > MAX_ENTRY_BYTES) {
     throw new MarketplaceError('That catalog entry is too large to load.', 'too-large')
   }
-  const text = await res.text()
-  if (text.length > MAX_ENTRY_BYTES) {
-    throw new MarketplaceError('That catalog entry is too large to load.', 'too-large')
-  }
+  const text = await readCapped(res)
   // A single-page host answers an unknown path with 200 and its index.html, so a
   // wrong URL never surfaces as a 404. Catch it here rather than letting the XML or
   // JSON parser report a baffling syntax error about the app's own markup.
@@ -321,7 +349,22 @@ async function fetchText(url: string, signal?: AbortSignal): Promise<string> {
       'not-found'
     )
   }
-  return text
+  return { text, finalUrl: res.url || url }
+}
+
+async function fetchText(url: string, signal?: AbortSignal): Promise<string> {
+  return (await fetchTextAt(url, signal)).text
+}
+
+/**
+ * SHA-256 of a file's text as lowercase hex. A leading BOM is dropped and CRLF becomes
+ * LF first, so the same file hashes identically whether it was checked out on Windows
+ * or Linux. scripts/catalog-lib.mjs must normalize the same way.
+ */
+export async function hashText(text: string): Promise<string> {
+  const normalized = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n')
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized))
+  return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 /** Index cache, cleared only by a page reload or an explicit refresh. */
@@ -408,5 +451,34 @@ export async function fetchCatalogs(signal?: AbortSignal, refresh = false): Prom
 
 /** Fetch one entry's XML, resolved against the catalog the entry came from. */
 export async function fetchEntryXml(entry: MarketplaceEntry, signal?: AbortSignal): Promise<string> {
-  return fetchText(resolveEntryUrl(entry.url, entry.catalogUrl || marketplaceUrl), signal)
+  return (await fetchEntry(entry, signal)).xml
+}
+
+/**
+ * Fetch one entry and decide whether it may skip the confirmation prompt.
+ *
+ * `trusted` needs all four: a known-good checksum in the catalog, a trusted catalog,
+ * a trusted starting URL, and a trusted final URL. The catalog matters because the
+ * checksum comes from it, so an untrusted catalog could otherwise vouch for any file
+ * on a trusted host. The final URL matters because fetch follows redirects, so a
+ * trusted host can hand the request to any other host.
+ */
+export async function fetchEntry(
+  entry: MarketplaceEntry,
+  signal?: AbortSignal
+): Promise<{ xml: string; trusted: boolean }> {
+  const catalogUrl = entry.catalogUrl || marketplaceUrl
+  const url = resolveEntryUrl(entry.url, catalogUrl)
+  const { text, finalUrl } = await fetchTextAt(url, signal)
+
+  if (entry.sha256 && (await hashText(text)) !== entry.sha256) {
+    throw new MarketplaceError(
+      "This file does not match the catalog's checksum. It may have changed since it was reviewed.",
+      'checksum'
+    )
+  }
+
+  const origin = location.origin
+  const trusted = !!entry.sha256 && [catalogUrl, url, finalUrl].every(u => isTrustedSource(u, origin))
+  return { xml: text, trusted }
 }

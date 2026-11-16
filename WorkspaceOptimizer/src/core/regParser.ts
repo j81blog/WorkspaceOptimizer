@@ -139,6 +139,11 @@ function toLogicalLines(text: string): LogicalLine[] {
 
   for (let i = 0; i < physical.length; i++) {
     const trimmed = physical[i].trim()
+    // A trailing backslash in a comment is just text, not a continuation.
+    if (buffer === null && trimmed.startsWith(';')) {
+      out.push({ text: trimmed, line: i + 1 })
+      continue
+    }
     const continues = trimmed.endsWith('\\')
     const body = continues ? trimmed.slice(0, -1) : trimmed
 

@@ -13,7 +13,7 @@
     <OptionsMenu
       @new="emit('newblank')" @default="emit('new')" @open="emit('open')"
       @marketplace="emit('marketplace')" @regfile="emit('regfile')"
-      @manageos="emit('manageos')" @pdf="emit('pdf')" />
+      @manageos="emit('manageos')" @pdf="emit('pdf')" @draft="emit('savedraft')" />
 
     <div class="tb-divider"></div>
 
@@ -90,7 +90,7 @@ import OptionsMenu from './OptionsMenu.vue'
 
 const emit = defineEmits<{
   new: []; newblank: []; open: []; save: []; downloadscript: []; manageos: []; pdf: []
-  about: []; marketplace: []; regfile: []; properties: []
+  about: []; marketplace: []; regfile: []; properties: []; savedraft: []
 }>()
 
 /**

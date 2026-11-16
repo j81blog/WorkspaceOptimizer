@@ -43,8 +43,8 @@ describe('itemKey', () => {
   })
 
   it('gives every Unknown item a distinct key', () => {
-    const a = item({ type: 'Unknown', typeRaw: 'Weird', payload: { type: 'Unknown' } })
-    const b = item({ type: 'Unknown', typeRaw: 'Weird', payload: { type: 'Unknown' } })
+    const a = item({ type: 'Unknown', typeRaw: 'Weird', payload: { type: 'Unknown', rawXml: '' } })
+    const b = item({ type: 'Unknown', typeRaw: 'Weird', payload: { type: 'Unknown', rawXml: '' } })
     expect(itemKey(a)).not.toBe(itemKey(b))
   })
 })

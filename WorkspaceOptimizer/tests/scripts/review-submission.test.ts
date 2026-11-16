@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { execFileSync } from 'node:child_process'
 import { writeFileSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -14,6 +14,9 @@ import { fileURLToPath } from 'node:url'
 
 const scriptPath = resolve(dirname(fileURLToPath(import.meta.url)), '../../scripts/review-submission.mjs')
 let dir: string
+
+// Every test starts a Node process that loads jsdom, which alone can take seconds on Windows
+vi.setConfig({ testTimeout: 30_000 })
 
 beforeAll(() => { dir = mkdtempSync(join(tmpdir(), 'wo-review-')) })
 afterAll(() => { rmSync(dir, { recursive: true, force: true }) })
@@ -88,6 +91,29 @@ describe('PowerShell detection', () => {
   it('shows the script so the reviewer does not have to open the file', () => {
     const { out } = review(snippet(psItem('iex $evil')))
     expect(out).toContain('iex $evil')
+  })
+
+  it('shows every line of a long script', () => {
+    const { out } = review(snippet(psItem(Array.from({ length: 12 }, (_, i) => `Write-Host ${i}`).join('\n') + '\niex $late')))
+    expect(out).toContain('iex $late')
+  })
+
+  // The editor and the deployment script both accept these, so the review must too.
+  it.each([
+    ['a lowercase type', (s: string) => s.replace('<Type>PowerShell</Type>', '<Type>powershell</Type>')],
+    ['an attribute on Item', (s: string) => s.replace('<Item>', '<Item reviewed="yes">')],
+    ['an attribute on Script', (s: string) => s.replace('<Script>', '<Script lang="ps">')],
+    ['a type that claims to be Registry', (s: string) => s.replace('<Type>PowerShell</Type>', '<Type>Registry</Type>')],
+    ['an entity-encoded script', (s: string) => s.replace('<![CDATA[iex $x]]>', '&#105;ex $x')],
+  ])('flags a script hidden behind %s', (_, disguise) => {
+    const { out } = review(snippet(disguise(psItem('iex $x'))))
+    expect(out).toContain('NEEDS REVIEW')
+    expect(out).toContain('executes a string as code')
+  })
+
+  it('points out an item the catalog count misses', () => {
+    const { out } = review(snippet(regItem('SOFTWARE\\X') + '<!-- <Item> -->'))
+    expect(out).toContain('parses to 1')
   })
 })
 

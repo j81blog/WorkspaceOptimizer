@@ -83,11 +83,11 @@ describe('registry empty values', () => {
   const missing = (d: ReturnType<typeof reg>) =>
     validate(d).errors.some(e => e.code === 'FIELD_REQUIRED' && e.path.endsWith('/Value'))
 
-  it.each(['String', 'ExpandString', 'MultiString'])('allows an empty %s value', (t) => {
+  it.each(['String', 'ExpandString', 'MultiString', 'Binary'])('allows an empty %s value', (t) => {
     expect(missing(reg(t, ''))).toBe(false)
   })
 
-  it.each(['DWord', 'Qword', 'Binary'])('still requires a value for %s', (t) => {
+  it.each(['DWord', 'Qword'])('still requires a value for %s', (t) => {
     expect(missing(reg(t, ''))).toBe(true)
   })
 

@@ -70,6 +70,7 @@
             </td>
             <td class="c-target">
               <div class="mono mt-target">{{ describe(row.item) }}</div>
+              <pre v-if="row.item.payload.type === 'PowerShell'" class="mono mt-script">{{ row.item.payload.script }}</pre>
               <div v-if="row.existing" class="mono mt-existing">existing: {{ summarizeValue(row.existing) }} → incoming: {{ summarizeValue(row.item) }}</div>
             </td>
           </tr>
@@ -208,6 +209,7 @@ function summarizeValue(item: TemplateItem): string {
 .mt-inp:focus { outline: none; border-color: var(--field-focus-bdr); }
 .mt-target { color: var(--field-label); font-size: 10px; word-break: break-all; }
 .mt-existing { color: #f59e0b; font-size: 10px; margin-top: 2px; }
+.mt-script { color: var(--field-txt); font-size: 10px; margin: 4px 0 0; padding: 4px 6px; max-height: 120px; overflow: auto; white-space: pre-wrap; word-break: break-all; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 4px; }
 .mt-notes { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
 .note { font-size: 9px; padding: 1px 5px; border-radius: 3px; background: var(--sb-input-bg); color: var(--field-label); }
 .note--danger { background: var(--btn-danger-bg); color: var(--btn-danger-txt); }

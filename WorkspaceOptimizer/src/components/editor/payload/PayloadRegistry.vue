@@ -42,8 +42,8 @@
       <div class="field-grid">
         <div v-if="needsName" class="col-9">
           <div class="field">
-            <label class="field-lbl">Value Name *</label>
-            <input class="field-inp mono" :value="p.name" @input="emit('update', { name: ($event.target as HTMLInputElement).value })" />
+            <label class="field-lbl">Value Name</label>
+            <input class="field-inp mono" :value="p.name" placeholder="(Default)" @input="emit('update', { name: ($event.target as HTMLInputElement).value })" />
           </div>
         </div>
         <div v-if="p.action === 'SetValue'" class="col-3">
