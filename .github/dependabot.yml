@@ -29,6 +29,10 @@ updates:
       # comes back empty.
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
+      # The Node typings follow the Node version in WorkspaceOptimizer/.nvmrc. Bump them
+      # by hand together with that file.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
