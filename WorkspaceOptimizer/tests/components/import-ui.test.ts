@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
+import { reactive } from 'vue'
 import { mount, flushPromises } from '@vue/test-utils'
 import MergeTable from '../../src/components/MergeTable.vue'
 import MergePreviewDialog from '../../src/components/MergePreviewDialog.vue'
@@ -272,7 +273,8 @@ it('offers to add an OS definition the snippet carries', () => {
 it('still offers to add an OS the snippet did not define, flagged as incomplete', async () => {
   const incoming = item('Orphan', 'svc')
   incoming.os = { Server2012: { execute: true, physical: true, virtual: true } }
-  const plan = buildMergePlan(doc(), [incoming])
+  // App.vue holds the plan in a ref; test-utils 2.6 no longer makes props deeply reactive.
+  const plan = reactive(buildMergePlan(doc(), [incoming]))
   const w = mount(MergePreviewDialog, {
     props: { visible: true, plan, source: { id: 'mp:x', kind: 'marketplace', label: 'X', origin: '', sameOrigin: true, originLabel: '' } },
     attachTo: document.body
